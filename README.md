@@ -1,19 +1,39 @@
-# Sponsorloop Tracker (live sync via Firebase)
+# Sponsorloop Tracker
 
-## Eenmalig instellen
-1. https://console.firebase.google.com → **Project toevoegen** (Analytics uit).
-2. **Build → Realtime Database → Database maken** (kies een regio, start in *test mode*).
-3. Tab **Rules** → vervang door en **Publish**:
-   ```json
-   { "rules": { "sessions": { "$code": { ".read": true, ".write": true } } } }
-   ```
-4. Kopieer de database-URL (bovenaan het tabblad Data, begint met `https://`) naar `firebase-config.js`.
+Rondjes tellen tijdens de sponsorloop, met een live stand en een onthulling voor op het grote scherm.
 
-## Publiceren (GitHub Pages)
-Deze repo is al klaar: Settings → Pages → Deploy from branch → `main` / root.
+- **Tracker** (`index.html`): klas kiezen en op de grote knop tikken.
+- **Stream-pagina** (`stream.html`): live stand of onthulling van de uitslag.
 
-## Gebruik
-- Tracker: **Beheer → Data & Beheer (icoon) → Live Sync → Start Sync** geeft een code.
-- Andere PC: open `stream.html`, voer de code in en kies **Live stand** (actuele stand, werkt vanzelf bij) of **Onthulling** (intro → top 3 → rest → eindstand, met Spatie). Esc = stoppen.
-- OBS: **Kopieer OBS-link** geeft de live stand met transparante achtergrond (Browser-bron).
-- Live Sync staat bij het openen van de tracker altijd uit; je kunt hervatten met dezelfde code.
+## Live Sync
+1. Tracker: **Beheer → Data & Beheer → Live Sync → Start Sync**.
+2. Andere computer: open `stream.html` en vul de code in.
+3. Kies **Live stand** of **Onthulling** (start met Spatie, daarna gaat het vanzelf). Stoppen: Esc of het kruisje.
+
+Live Sync gebruikt Firebase Realtime Database (`src/lib/firebase.js`), met deze regels:
+```json
+{ "rules": { "sessions": { "$code": { ".read": true, ".write": true } } } }
+```
+
+## Ontwikkelen
+```bash
+npm install
+npm run dev      # lokaal starten
+npm test         # tests
+npm run build    # bouwt naar dist/
+```
+Elke push naar `main` wordt automatisch gebouwd en gepubliceerd (GitHub Actions → Pages).
+
+## Mappen
+```
+src/
+  App.jsx            hoofdcomponent: data, tabs en pop-ups
+  pages/             Tracker en Beheer
+  modals/            alle pop-ups
+  components/        knoppen, pop-up basis, grafiek, navigatie
+  hooks/useLiveSync  Live Sync naar Firebase
+  lib/               opslag, ranglijst, backup, kleuren, firebase
+  stream/            de stream-pagina (live stand + onthulling)
+tests/               tests voor de logica in lib/
+test-data/           voorbeeldbestand om te importeren
+```
