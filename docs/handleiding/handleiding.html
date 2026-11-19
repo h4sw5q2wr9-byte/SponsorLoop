@@ -27,6 +27,9 @@
   .card.white { background: #fff; border: 1px solid var(--line); }
   .shot { display: block; width: 100%; border-radius: 4mm; border: 1px solid var(--line); box-shadow: 0 4px 14px rgba(15,23,42,.08); }
   .phone { border-radius: 6mm; }
+  .card-shot { display: block; width: 100%; border-radius: 6mm; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(15,23,42,.10); }
+  .fig { margin: 0; }
+  .fig .cap { margin-top: 2.5mm; }
   .cap { font-size: 8.5pt; color: var(--muted); margin-top: 2mm; text-align: center; }
   ol.steps { list-style: none; padding: 0; margin: 0; counter-reset: s; }
   ol.steps li { counter-increment: s; position: relative; padding-left: 10mm; margin-bottom: 3.2mm; }
@@ -43,14 +46,14 @@
   code, .url { font-family: ui-monospace, Menlo, monospace; font-size: 8.8pt; background: var(--soft); border-radius: 1.5mm; padding: .3mm 1.5mm; word-break: break-all; }
 
   /* cover */
-  .cover { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 45%, #3730a3 100%); color: #fff; padding: 22mm 20mm; }
+  .cover { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 45%, #3730a3 100%); color: #fff; padding: 22mm 20mm 20mm; display: flex; flex-direction: column; }
   .cover .blob { position: absolute; border-radius: 50%; filter: blur(30px); }
   .cover h1 { font-size: 44pt; margin-top: 4mm; }
   .cover .sub { font-size: 15pt; color: #dbeafe; font-weight: 600; }
   .cover .shotwrap { margin: 12mm -4mm 0; border-radius: 5mm; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,.35); border: 3px solid rgba(255,255,255,.25); }
   .cover .chips { display: flex; flex-wrap: wrap; gap: 2.5mm; margin-top: 6mm; }
   .cover .chips span { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); border-radius: 99px; padding: 1.6mm 4mm; font-weight: 700; font-size: 10pt; }
-  .cover .linkbox { position: absolute; left: 20mm; right: 20mm; bottom: 20mm; display: flex; gap: 6mm; align-items: center;
+  .cover .linkbox { position: relative; display: flex; gap: 6mm; align-items: center;
      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); border-radius: 6mm; padding: 5mm; }
   .cover .linkbox img { width: 30mm; height: 30mm; border-radius: 3mm; background: #fff; padding: 1.5mm; }
   .cover .url { background: rgba(255,255,255,.15); color: #fff; font-size: 10pt; }
@@ -69,8 +72,8 @@
     <div class="chips">
       <span>👆 Tellen met één tik</span><span>📺 Live stand</span><span>🏆 Onthulling</span><span>📶 Werkt offline</span>
     </div>
-    <div class="shotwrap"><img src="img/tracker-digibord.png" style="width:100%;display:block"></div>
   </div>
+  <div class="shotwrap" style="position:relative;margin:auto -4mm"><img src="img/tracker-digibord.png" style="width:100%;display:block"></div>
   <div class="linkbox">
     <img src="img/qr-site.png" alt="QR-code">
     <div>
@@ -105,7 +108,7 @@
       <li><b>Live tonen</b> (optioneel): start <span class="tag">Live Sync</span> en open de stream-pagina op een ander scherm.</li>
       <li><b>Na afloop:</b> onthul de uitslag en <b>exporteer</b> de gegevens als backup.</li>
     </ol>
-    <div><img class="shot phone" src="img/welkom.png" style="height:80mm;width:auto;margin:0 auto"><div class="cap">Het welkomstscherm bij het eerste bezoek</div></div>
+    <div class="fig"><img class="card-shot" src="img/welkom-card.png" style="width:47mm;margin:0 auto"><div class="cap">Het welkomstscherm bij het eerste bezoek</div></div>
   </div>
   <div class="foot"><span>Sponsorloop Tracker · Handleiding</span><span>2</span></div>
 </section>
@@ -115,8 +118,8 @@
   <div class="eyebrow">Tellen</div>
   <h1>De Tracker</h1>
   <p class="lead">Het hoofdscherm. Kies bovenaan een klas en tik op de grote gekleurde knop: elke tik is één rondje.</p>
-  <div class="grid2" style="grid-template-columns: 54mm 1fr; align-items:start; margin-top:4mm">
-    <div><img class="shot phone" src="img/tracker-telefoon.png"><div class="cap">Op een telefoon</div></div>
+  <div class="grid2" style="grid-template-columns: 50mm 1fr; align-items:start; margin-top:4mm">
+    <div class="fig"><img class="shot phone" src="img/tracker-telefoon.png"><div class="cap">Op een telefoon</div></div>
     <div>
       <h3>Zo werkt het</h3>
       <ul class="dots">
@@ -130,8 +133,10 @@
     </div>
   </div>
   <h2>Op het digibord</h2>
-  <img class="shot" src="img/tracker-digibord.png" style="width:82%;margin:0 auto">
-  <div class="cap">Op een groot scherm staat links een <b>ranglijst</b>. Tik op een klas in die lijst om hem meteen te kiezen: handig als alle klassen op het digibord tellen.</div>
+  <div class="grid2" style="grid-template-columns: 1fr 52mm; align-items:center">
+    <img class="shot" src="img/tracker-digibord.png">
+    <p class="muted" style="margin:0">Op een groot scherm staat links een <b>ranglijst</b>. Tik op een klas in die lijst om hem meteen te kiezen: handig als alle klassen op het digibord tellen.</p>
+  </div>
   <div class="foot"><span>Sponsorloop Tracker · Handleiding</span><span>3</span></div>
 </section>
 
@@ -141,7 +146,7 @@
   <h1>Beheer</h1>
   <p class="lead">Hier zet je alles klaar: klassen, het schooldoel en de statistieken.</p>
   <div class="grid2" style="grid-template-columns:58mm 1fr;margin-top:4mm;align-items:start">
-    <div><img class="shot phone" src="img/beheer.png"><div class="cap">Schooldoel en statistieken</div></div>
+    <div class="fig"><img class="card-shot" src="img/beheer-top.png" style="-webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent);mask-image:linear-gradient(to bottom,#000 72%,transparent);box-shadow:none"><div class="cap">Schooldoel en statistieken</div></div>
     <div>
       <h3>Klassen</h3>
       <ul class="dots">
@@ -163,9 +168,13 @@
       <div class="warn"><b>Let op:</b> de rode prullenbak bovenaan wist <b>alle</b> klassen en rondes. Maak eerst een export.</div>
     </div>
   </div>
-  <div class="grid2" style="grid-template-columns:58mm 1fr;margin-top:5mm;align-items:start">
-    <div><img class="shot phone" src="img/klas-bewerken.png" style="height:62mm;object-fit:cover;object-position:50% 36%"><div class="cap">Een klas bewerken</div></div>
-    <div class="tip" style="margin:6mm 0 0"><b>Tip:</b> tik je te vaak of mis je een rondje? Pas het aantal direct aan met <span class="tag">−</span> en <span class="tag">+</span> bij het bewerken van de klas.</div>
+  <div class="grid2" style="grid-template-columns:58mm 1fr;margin-top:7mm;align-items:center">
+    <div class="fig"><img class="card-shot" src="img/klas-bewerken-card.png"><div class="cap">Een klas bewerken (potloodje)</div></div>
+    <div>
+      <h3>Een klas bewerken</h3>
+      <p class="muted">Pas de naam, het aantal rondes en de kleur aan. De knop in de Tracker krijgt die kleur.</p>
+      <div class="tip" style="margin:0"><b>Tip:</b> te vaak getikt of een rondje gemist? Pas het aantal aan met <span class="tag">−</span> en <span class="tag">+</span>.</div>
+    </div>
   </div>
   <div class="foot"><span>Sponsorloop Tracker · Handleiding</span><span>4</span></div>
 </section>
@@ -176,7 +185,7 @@
   <h1>Data bewaren</h1>
   <p class="lead">De tracker slaat alles op in de browser van het apparaat waarop je telt. Er is geen account en de gegevens staan niet op internet (behalve tijdens Live Sync, zie volgende pagina).</p>
   <div class="grid2" style="grid-template-columns: 68mm 1fr; margin-top:5mm; align-items:start">
-    <div><img class="shot" src="img/data-beheer-crop.png" style="border-radius:6mm"><div class="cap">Data &amp; Beheer (pijltjes-knop in Beheer)</div></div>
+    <div class="fig"><img class="card-shot" src="img/data-beheer-card.png"><div class="cap">Data &amp; Beheer (pijltjes-knop in Beheer)</div></div>
     <div>
       <h3>Exporteren (backup maken)</h3>
       <p>Downloadt een bestand, bijvoorbeeld <code>sponsorloop-backup-2026-05-14-15-30-00.json</code>, met alle klassen, rondes en het schooldoel.</p>
@@ -200,8 +209,8 @@
   <div class="eyebrow">Tweede scherm</div>
   <h1>Live Sync en de stream-pagina</h1>
   <p class="lead">Met Live Sync zie je de stand live op een ander scherm: een tv, beamer of livestream. Het tel-apparaat stuurt de stand door en het andere scherm laat hem zien.</p>
-  <div class="grid3" style="margin-top:4mm;align-items:start;grid-template-columns:44mm 1fr">
-    <div><img class="shot phone" src="img/live-sync.png"><div class="cap">Live Sync met de code</div></div>
+  <div class="grid2" style="margin-top:4mm;align-items:start;grid-template-columns:54mm 1fr">
+    <div class="fig"><img class="card-shot" src="img/live-sync-card.png"><div class="cap">Live Sync met de code</div></div>
     <div>
       <ol class="steps">
         <li>In de tracker: <span class="tag">Beheer</span> → pijltjes-knop → <span class="tag">Live Sync</span> → <span class="tag">Start Sync</span>. Je krijgt een code van 5 tekens.</li>
@@ -237,7 +246,7 @@
   <div class="grid2" style="gap:4mm">
     <div><img class="shot" src="img/onthulling-intro.png"><div class="cap">1. Intro</div></div>
     <div><img class="shot" src="img/onthulling-top3.png"><div class="cap">2. Top 3 op het podium, met confetti</div></div>
-    <div><img class="shot" src="img/onthulling-ranglijst.png"><div class="cap">3. De rest rolt één voor één in beeld</div></div>
+    <div><img class="shot" src="img/onthulling-ranglijst-crop.png"><div class="cap">3. De rest rolt één voor één in beeld</div></div>
     <div><img class="shot" src="img/onthulling-eindstand.png"><div class="cap">4. Eindstand met alle klassen</div></div>
   </div>
   <table style="margin-top:4mm">
