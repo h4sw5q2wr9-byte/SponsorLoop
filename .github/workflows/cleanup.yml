@@ -1,0 +1,22 @@
+name: Firebase opruimen
+
+on:
+  schedule:
+    - cron: '17 3 * * *'   # elke nacht om 03:17 (UTC)
+  workflow_dispatch:        # ook handmatig te starten via Actions
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Verouderde Live Sync-codes verwijderen
+        run: node scripts/cleanup-sessions.mjs
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
