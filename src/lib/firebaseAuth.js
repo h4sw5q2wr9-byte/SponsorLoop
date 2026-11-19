@@ -1,6 +1,6 @@
 // Anoniem inloggen bij Firebase (via REST), zodat alleen de tracker die een code
 // heeft gestart die code kan wijzigen. Kijkers (stream-pagina) hoeven niet in te loggen.
-import { FIREBASE_API_KEY } from './firebase.js';
+import { FIREBASE_API_KEY, FirebaseUnavailable } from './firebase.js';
 import { read, write } from './storage.js';
 
 const STORE = 'sponsorloop_auth';
@@ -15,7 +15,7 @@ async function post(url, body, form = false) {
     headers: { 'Content-Type': form ? 'application/x-www-form-urlencoded' : 'application/json' },
     body: form ? new URLSearchParams(body).toString() : JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`Inloggen mislukt (HTTP ${res.status})`);
+  if (!res.ok) throw new FirebaseUnavailable(res.status); // inloggen geweigerd (bijv. limiet of uitgezet)
   return res.json();
 }
 

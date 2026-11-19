@@ -80,12 +80,13 @@ function stats(d) {
   d = d || S.data || {};
   var classes = (d.classes || []).map(function (c) { return { name: c.name, laps: c.laps, color: col(c.color) }; });
   var st = standings(classes, d.schoolGoal);
-  return { cl: st.list, total: st.total, max: st.max, goal: st.goal, pct: st.pct, online: !!(d.seenAt && Date.now() - d.seenAt < 45000) };
+  return { cl: st.list, total: st.total, max: st.max, goal: st.goal, pct: st.pct, online: !!(d.seenAt && Date.now() - d.seenAt < 75000) };
 }
 
 function chip() {
   var st = stats(), m;
-  if (S.net === 'error') m = ['bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400', 'bg-red-500', 'Geen verbinding'];
+  if (S.net === 'unavailable') m = ['bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300', 'bg-orange-500', 'Live Sync niet beschikbaar'];
+  else if (S.net === 'error') m = ['bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400', 'bg-red-500', 'Geen verbinding'];
   else if (!S.data) m = ['bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400', 'bg-amber-500 animate-pulse', 'Wachten op gegevens'];
   else if (st.online) m = ['bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400', 'bg-green-500 animate-pulse', 'Live'];
   else m = ['bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400', 'bg-slate-400', 'Tracker niet actief'];
@@ -503,7 +504,7 @@ function startFeed() {
     if (S.view === 'live') updateLive();
     else if (S.view === 'preview') render();
   }, function (status) {
-    if (status === 'error' && S.net !== 'error') { S.net = 'error'; if (S.view === 'preview') render(); }
+    if ((status === 'error' || status === 'unavailable') && S.net !== status) { S.net = status; if (S.view === 'preview') render(); }
     else if (status === 'ok' && S.net !== 'ok') { S.net = 'ok'; if (S.view === 'preview') render(); }
   });
 }

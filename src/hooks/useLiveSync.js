@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { newCode, sessionUrl } from '../lib/firebase.js';
+import { buildUpdate, FirebaseUnavailable, newCode, sessionUrl } from '../lib/firebase.js';
 import { getAuth } from '../lib/firebaseAuth.js';
 import { KEYS, read, write } from '../lib/storage.js';
 
-const HEARTBEAT_MS = 15000; // stream-pagina ziet zo dat de tracker nog actief is
+const HEARTBEAT_MS = 30000; // stream-pagina ziet zo dat de tracker nog actief is
 const RETRY_MS = 3000;
+const RETRY_UNAVAILABLE_MS = 30000; // Firebase weigert: rustig opnieuw proberen
 const FORGOTTEN_AFTER_MS = 24 * 60 * 60 * 1000; // vergeten code na een dag opruimen
 
 /** Verwijdert een code uit Firebase (alleen mogelijk voor de eigen tracker). */
 function removeCode(c) {
   return getAuth()
-    .then((auth) => fetch(sessionUrl(c, auth && auth.token), { method: 'DELETE' }))
+    .then((auth) => fetch(sessionUrl(c, auth && auth.token, true), { method: 'DELETE' }))
     .catch(() => {});
 }
 
@@ -32,42 +33,46 @@ export function useLiveSync(classes, goal) {
     }
     return old;
   });
-  const [status, setStatus] = useState('idle'); // idle | sending | ok | error | denied
+  const [status, setStatus] = useState('idle'); // idle | sending | ok | error | denied | unavailable
   const [lastOkAt, setLastOkAt] = useState(0);
   const latest = useRef({ classes, goal });
   const retry = useRef(null);
+  const lastSent = useRef(null); // wat Firebase nu heeft, om alleen wijzigingen te sturen
 
   latest.current = { classes, goal };
 
-  const send = useCallback(async (target) => {
+  const send = useCallback(async (target, force = false) => {
     clearTimeout(retry.current);
     if (!target) return;
     const { classes: cl, goal: g } = latest.current;
-    const body = {
-      classes: cl.map(({ name, laps, color }) => ({ name, laps, color })),
-      schoolGoal: g || null,
-      updatedAt: Date.now(),
-      seenAt: Date.now(),
-    };
+    const prev = !force && lastSent.current && lastSent.current.code === target ? lastSent.current : null;
+    const update = buildUpdate(prev, cl, g, Date.now());
+    if (!update) return; // niets nieuws
     try {
       const auth = await getAuth(); // null als inloggen uit staat
-      if (auth) body.owner = auth.uid;
-      const res = await fetch(sessionUrl(target, auth && auth.token), { method: 'PUT', body: JSON.stringify(body) });
-      if (res.status === 401 && auth) { setStatus('denied'); return; } // code is van een ander apparaat
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (auth && update.full) update.body.owner = auth.uid;
+      const res = await fetch(sessionUrl(target, auth && auth.token, true), {
+        method: update.full ? 'PUT' : 'PATCH',
+        body: JSON.stringify(update.body),
+      });
+      if (res.status === 401 && auth) { lastSent.current = null; setStatus('denied'); return; } // code is van een ander apparaat
+      if (!res.ok) throw new FirebaseUnavailable(res.status);
+      lastSent.current = { code: target, ...update.snapshot };
       setStatus('ok');
       setLastOkAt(Date.now());
       write(KEYS.liveSeen, String(Date.now()));
-    } catch {
-      setStatus('error');
-      retry.current = setTimeout(() => send(target), RETRY_MS);
+    } catch (e) {
+      lastSent.current = null; // volgende keer alles opnieuw sturen
+      const unavailable = !!(e && e.unavailable);
+      setStatus(unavailable ? 'unavailable' : 'error');
+      retry.current = setTimeout(() => send(target, true), unavailable ? RETRY_UNAVAILABLE_MS : RETRY_MS);
     }
   }, []);
 
   // Bij elke wijziging (kort gebundeld) versturen
   useEffect(() => {
     if (!code) return undefined;
-    const t = setTimeout(() => send(code), 200);
+    const t = setTimeout(() => send(code), 250);
     return () => clearTimeout(t);
   }, [classes, goal, code, send]);
 
@@ -76,9 +81,9 @@ export function useLiveSync(classes, goal) {
   useEffect(() => {
     if (!code) return undefined;
     const beat = () => getAuth()
-      .then((auth) => fetch(sessionUrl(code, auth && auth.token), { method: 'PATCH', body: JSON.stringify({ seenAt: Date.now() }) }))
+      .then((auth) => fetch(sessionUrl(code, auth && auth.token, true), { method: 'PATCH', body: JSON.stringify({ seenAt: Date.now() }) }))
       .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); setStatus('ok'); setLastOkAt(Date.now()); write(KEYS.liveSeen, String(Date.now())); })
-      .catch(() => send(code));
+      .catch(() => send(code, true));
     const t = setInterval(beat, HEARTBEAT_MS);
     return () => clearInterval(t);
   }, [code, send]);

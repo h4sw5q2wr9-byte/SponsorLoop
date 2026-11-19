@@ -90,3 +90,45 @@ describe('live feed (Firebase streaming)', () => {
     expect(applyEvent(start, 'put', { path: '/classes/0', data: null }).classes).toEqual([{ name: 'B', laps: 2 }]);
   });
 });
+
+import { buildUpdate, sessionUrl } from '../src/lib/firebase.js';
+
+describe('zuinig versturen', () => {
+  const cls = [{ name: 'A', laps: 1, color: '#f00' }, { name: 'B', laps: 2, color: '#0f0' }];
+  it('eerste keer: alles', () => {
+    const u = buildUpdate(null, cls, 100, 5);
+    expect(u.full).toBe(true);
+    expect(u.body).toMatchObject({ classes: cls, schoolGoal: 100, updatedAt: 5 });
+  });
+  it('daarna: alleen de gewijzigde rondes', () => {
+    const prev = buildUpdate(null, cls, 100, 5).snapshot;
+    const u = buildUpdate(prev, [cls[0], { ...cls[1], laps: 3 }], 100, 6);
+    expect(u.full).toBe(false);
+    expect(u.body).toEqual({ 'classes/1/laps': 3, updatedAt: 6, seenAt: 6 });
+  });
+  it('niets veranderd: niets sturen', () => {
+    const prev = buildUpdate(null, cls, 100, 5).snapshot;
+    expect(buildUpdate(prev, cls, 100, 6)).toBe(null);
+  });
+  it('klas erbij, hernoemd of andere kleur: alles opnieuw', () => {
+    const prev = buildUpdate(null, cls, 100, 5).snapshot;
+    expect(buildUpdate(prev, [...cls, { name: 'C', laps: 0, color: '#00f' }], 100, 6).full).toBe(true);
+    expect(buildUpdate(prev, [{ ...cls[0], name: 'X' }, cls[1]], 100, 6).full).toBe(true);
+  });
+  it('doel gewijzigd: alleen het doel', () => {
+    const prev = buildUpdate(null, cls, 100, 5).snapshot;
+    expect(buildUpdate(prev, cls, 200, 6).body).toEqual({ schoolGoal: 200, updatedAt: 6, seenAt: 6 });
+  });
+  it('stille uploads (geen kopie terug)', () => {
+    expect(sessionUrl('ABCDE', 'tok', true)).toMatch(/\?auth=tok&print=silent$/);
+    expect(sessionUrl('ABCDE')).toMatch(/ABCDE\.json$/);
+  });
+});
+
+describe('live feed: kleine updates', () => {
+  it('patch met paden (classes/1/laps) wordt goed toegepast', () => {
+    const d = { classes: [{ name: 'A', laps: 1 }, { name: 'B', laps: 2 }], updatedAt: 1 };
+    const r = applyEvent(d, 'patch', { path: '/', data: { 'classes/1/laps': 7, updatedAt: 2 } });
+    expect(r).toEqual({ classes: [{ name: 'A', laps: 1 }, { name: 'B', laps: 7 }], updatedAt: 2 });
+  });
+});

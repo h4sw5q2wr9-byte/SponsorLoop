@@ -6,29 +6,38 @@ import { sessionUrl } from './firebase.js';
 
 const clone = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
 
-/** Verwerkt één Firebase-streamgebeurtenis ('put' of 'patch') op de huidige data. Puur te testen. */
-export function applyEvent(current, type, { path, data }) {
-  const parts = String(path || '/').split('/').filter(Boolean);
-  if (!parts.length) {
-    if (type === 'put') return clone(data);
-    return { ...(current || {}), ...clone(data) };
-  }
-  const root = clone(current) || {};
-  let node = root;
+const splitPath = (p) => String(p || '/').split('/').filter(Boolean);
+
+/** Zet `value` op pad `parts` (null = verwijderen). Werkt op een kopie. */
+function setAt(root, parts, value) {
+  if (!parts.length) return clone(value);
+  const out = clone(root) || {};
+  let node = out;
   for (let i = 0; i < parts.length - 1; i++) {
     if (node[parts[i]] === null || typeof node[parts[i]] !== 'object') node[parts[i]] = {};
     node = node[parts[i]];
   }
   const key = parts[parts.length - 1];
-  if (type === 'put') {
-    if (data === null) {
-      if (Array.isArray(node)) node[key] = undefined; else delete node[key];
-    } else node[key] = clone(data);
-  } else {
-    node[key] = { ...(node[key] || {}), ...clone(data) };
+  if (value === null || value === undefined) {
+    if (Array.isArray(node)) node[key] = undefined; else delete node[key];
+  } else node[key] = clone(value);
+  return out;
+}
+
+/**
+ * Verwerkt één Firebase-streamgebeurtenis op de huidige data. Puur te testen.
+ * 'put' = vervang op pad; 'patch' = elke sleutel (mag een pad met / zijn) apart toepassen.
+ */
+export function applyEvent(current, type, { path, data }) {
+  const base = splitPath(path);
+  let out;
+  if (type === 'put') out = setAt(current, base, data);
+  else {
+    out = current;
+    Object.keys(data || {}).forEach((k) => { out = setAt(out, base.concat(splitPath(k)), data[k]); });
   }
-  if (Array.isArray(root.classes)) root.classes = root.classes.filter(Boolean);
-  return root;
+  if (out && Array.isArray(out.classes)) out.classes = out.classes.filter(Boolean);
+  return out;
 }
 
 /**
@@ -48,10 +57,10 @@ export function subscribe(code, onData, onStatus) {
     const tick = () => {
       if (stopped) return;
       fetch(sessionUrl(code), { cache: 'no-store' })
-        .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+        .then((r) => { if (!r.ok) { const e = new Error(`HTTP ${r.status}`); e.unavailable = true; throw e; } return r.json(); })
         .then(emit)
-        .catch(() => !stopped && onStatus('error'))
-        .then(() => { if (!stopped) pollTimer = setTimeout(tick, 2000); });
+        .catch((e) => !stopped && onStatus(e && e.unavailable ? 'unavailable' : 'error'))
+        .then(() => { if (!stopped) pollTimer = setTimeout(tick, 2000); }, () => { if (!stopped) pollTimer = setTimeout(tick, 2000); });
     };
     tick();
   }
@@ -66,7 +75,7 @@ export function subscribe(code, onData, onStatus) {
     es.addEventListener('put', handle('put'));
     es.addEventListener('patch', handle('patch'));
     es.addEventListener('keep-alive', () => { failures = 0; onStatus('ok'); });
-    es.addEventListener('cancel', () => onStatus('error')); // geen toegang (regels)
+    es.addEventListener('cancel', () => onStatus('unavailable')); // Firebase weigert (regels of limiet)
     es.onerror = () => {
       if (stopped) return;
       onStatus('error');
