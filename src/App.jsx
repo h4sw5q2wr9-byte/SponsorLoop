@@ -128,7 +128,7 @@ export default function App() {
         const { classes: imported, goal: importedGoal } = parseBackup(String(reader.result));
         setClasses(imported);
         if (importedGoal !== null) setGoal(importedGoal);
-        setSelectedId(imported[0]?.id ?? null);
+        setSelectedId([...imported].sort(byName)[0]?.id ?? null);
         vibrate([20, 50, 20]);
         flash('Succesvol Geïmporteerd!');
       } catch (err) {

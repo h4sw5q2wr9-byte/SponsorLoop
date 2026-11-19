@@ -1,4 +1,4 @@
-import { AlertTriangle, Trash2 } from 'lucide-react';
+import { AlertTriangle, Minus, Plus, Trash2 } from 'lucide-react';
 import Button from '../components/Button.jsx';
 import Modal, { ModalHeader, ModalIcon } from '../components/Modal.jsx';
 import { PALETTE } from '../lib/colors.js';
@@ -20,8 +20,14 @@ export function EditClassModal({ value, onChange, onSave, onClose }) {
             </div>
             <div>
               <label className={fieldLabel} htmlFor="edit-laps">Aantal Rondes</label>
-              <input id="edit-laps" type="number" inputMode="numeric" value={value.laps} className={`${field} text-center text-2xl`}
-                onChange={(e) => onChange({ ...value, laps: Math.max(0, parseInt(e.target.value, 10) || 0) })} />
+              <div className="flex items-center gap-3">
+                <button type="button" aria-label="Ronde eraf" onClick={() => onChange({ ...value, laps: Math.max(0, value.laps - 1) })}
+                  className="shrink-0 w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center active:scale-95 transition-transform"><Minus size={20} /></button>
+                <input id="edit-laps" type="number" inputMode="numeric" value={value.laps} className={`${field} text-center text-2xl min-w-0`}
+                  onChange={(e) => onChange({ ...value, laps: Math.max(0, parseInt(e.target.value, 10) || 0) })} />
+                <button type="button" aria-label="Ronde erbij" onClick={() => onChange({ ...value, laps: value.laps + 1 })}
+                  className="shrink-0 w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center active:scale-95 transition-transform"><Plus size={20} /></button>
+              </div>
             </div>
             <div>
               <span className={fieldLabel}>Kleur</span>

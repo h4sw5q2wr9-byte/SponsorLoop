@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { BarChart3, CircleHelp, ArrowRightLeft, Layers, Moon, Pencil, Plus, Search, Sun, Target, Trash2, Trophy } from 'lucide-react';
 import StatsChart from '../components/StatsChart.jsx';
+import { standings } from '../lib/standings.js';
 
 const glass = 'bg-white/75 backdrop-blur-xl dark:bg-slate-800 dark:backdrop-blur-none border border-white/50 dark:border-slate-700';
 const iconBtn = 'p-3 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-2xl hover:bg-blue-50 dark:hover:bg-slate-700 active:scale-95 transition-all border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md';
@@ -22,6 +23,7 @@ export default function ManagePage({
     const byLaps = [...classes].sort((a, b) => b.laps - a.laps);
     return showAll ? byLaps : byLaps.slice(0, 6);
   }, [classes, showAll]);
+  const rankOf = useMemo(() => new Map(standings(classes).list.map((c) => [c.name, c.rank])), [classes]);
   const stackData = useMemo(() => classes.filter((c) => c.laps > 0).sort((a, b) => b.laps - a.laps), [classes]);
 
   const add = () => { if (onAddClass(newName)) setNewName(''); };
@@ -63,7 +65,7 @@ export default function ManagePage({
 
         {/* Statistieken */}
         <div className={`${glass} p-6 rounded-3xl shadow-sm mb-6`}>
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-wrap gap-3 justify-between items-center mb-6">
             <h3 className="text-lg font-bold flex items-center gap-2">
               <span className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 p-1.5 rounded-lg"><Trophy size={20} /></span>
               Statistieken
@@ -112,7 +114,7 @@ export default function ManagePage({
               </div>
               <div className="flex-1 ml-4 min-w-0">
                 <h3 className="font-bold text-lg truncate">{c.name}</h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Rondes: {c.laps}</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">{c.laps === 1 ? '1 ronde' : `${c.laps} rondes`} · plaats {rankOf.get(c.name)}</p>
               </div>
               <div className="flex gap-2 shrink-0 ml-2">
                 <button type="button" onClick={() => onEdit(c)} aria-label={`${c.name} bewerken`}

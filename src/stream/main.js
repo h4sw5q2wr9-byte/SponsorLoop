@@ -152,7 +152,7 @@ function viewPreview() {
       : '<p class="text-sm font-medium text-slate-400 dark:text-slate-600 italic mt-3">Geen ingesteld</p>') +
     '</div></div>' +
     '<div class="' + C.card + ' p-5 mb-6"><p class="' + C.label + ' mb-2">Klassen (' + st.cl.length + ')</p>' +
-    '<ul class="divide-y divide-slate-100 dark:divide-slate-700 max-h-72 overflow-y-auto no-scrollbar">' + list + '</ul></div>' +
+    '<ul class="divide-y divide-slate-100 dark:divide-slate-700 max-h-80 overflow-y-auto no-scrollbar" style="-webkit-mask-image:linear-gradient(to bottom,#000 85%,transparent);mask-image:linear-gradient(to bottom,#000 85%,transparent);padding-bottom:1.5rem">' + list + '</ul></div>' +
     '<p class="' + C.label + ' mb-2 px-1">Weergave</p>' +
     '<div class="grid sm:grid-cols-2 gap-3 mb-3">' +
     modeBtn('show', I.trophy(26), 'Onthulling', 'Wie heeft er gewonnen? Eerst de top ' + PODIUM + ', dan de rest.', true) +

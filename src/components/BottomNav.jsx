@@ -7,7 +7,7 @@ const TABS = [
 
 export default function BottomNav({ tab, onChange }) {
   return (
-    <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30">
+    <nav className="fixed bottom-8 landscape:bottom-3 lg:landscape:bottom-8 left-1/2 -translate-x-1/2 z-30">
       <div className="flex items-center p-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-2xl border border-white/20 dark:border-slate-700/50 rounded-full shadow-2xl shadow-blue-900/5 dark:shadow-black/50 ring-1 ring-slate-900/5">
         {TABS.map(({ id, label, Icon }, i) => (
           <div key={id} className="flex items-center">

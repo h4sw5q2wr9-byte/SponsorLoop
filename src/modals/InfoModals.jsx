@@ -61,9 +61,9 @@ export function HelpModal({ open, onClose }) {
         <div className="space-y-3">
           <h4 className={h}>Handige Tips</h4>
           <ul className="space-y-2">
-            <li className={tip}>{dot}Te vaak getikt? Gebruik &quot;Foutje herstellen&quot;.</li>
+            <li className={tip}>{dot}<span>Te vaak getikt? Gebruik <strong>Foutje herstellen</strong>.</span></li>
             <li className={tip}>{dot}<span>Stel een <strong>School Doel</strong> in voor extra motivatie!</span></li>
-            <li className={tip}>{dot}Met <strong>Live Sync</strong> zie je de stand op een ander scherm.</li>
+            <li className={tip}>{dot}<span>Met <strong>Live Sync</strong> zie je de stand op een ander scherm.</span></li>
           </ul>
         </div>
         <div className="space-y-3">
