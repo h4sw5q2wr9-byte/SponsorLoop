@@ -36,6 +36,7 @@
   .tip { background: #eff6ff; border: 1px solid #dbeafe; border-radius: 4mm; padding: 3.5mm 4.5mm; color: #1e3a8a; font-size: 9.5pt; margin: 3mm 0; }
   .warn { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 4mm; padding: 3.5mm 4.5mm; color: #9a3412; font-size: 9.5pt; margin: 3mm 0; }
   .tag { display: inline-block; background: var(--soft); border: 1px solid var(--line); border-radius: 2mm; padding: 0 1.8mm; font-weight: 700; font-size: 9pt; }
+  table.keys td { border: 0; padding: 1mm 1.5mm; font-size: 9.5pt; }
   table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
   td, th { text-align: left; padding: 2mm 2.5mm; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { font-size: 8pt; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
@@ -47,6 +48,8 @@
   .cover h1 { font-size: 44pt; margin-top: 4mm; }
   .cover .sub { font-size: 15pt; color: #dbeafe; font-weight: 600; }
   .cover .shotwrap { margin: 12mm -4mm 0; border-radius: 5mm; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,.35); border: 3px solid rgba(255,255,255,.25); }
+  .cover .chips { display: flex; flex-wrap: wrap; gap: 2.5mm; margin-top: 6mm; }
+  .cover .chips span { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); border-radius: 99px; padding: 1.6mm 4mm; font-weight: 700; font-size: 10pt; }
   .cover .linkbox { position: absolute; left: 20mm; right: 20mm; bottom: 20mm; display: flex; gap: 6mm; align-items: center;
      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); border-radius: 6mm; padding: 5mm; }
   .cover .linkbox img { width: 30mm; height: 30mm; border-radius: 3mm; background: #fff; padding: 1.5mm; }
@@ -63,6 +66,9 @@
     <div class="eyebrow" style="color:#bfdbfe">Handleiding</div>
     <h1>Sponsorloop Tracker</h1>
     <div class="sub">Rondjes tellen, de stand live op het grote scherm en een feestelijke uitslag.</div>
+    <div class="chips">
+      <span>👆 Tellen met één tik</span><span>📺 Live stand</span><span>🏆 Onthulling</span><span>📶 Werkt offline</span>
+    </div>
     <div class="shotwrap"><img src="img/tracker-digibord.png" style="width:100%;display:block"></div>
   </div>
   <div class="linkbox">
@@ -139,7 +145,7 @@
     <div>
       <h3>Klassen</h3>
       <ul class="dots">
-        <li><b>Toevoegen:</b> typ een naam bij <i>Nieuwe klas naam</i> en druk op <span class="tag">+</span>.</li>
+        <li><b>Toevoegen:</b> typ een naam en tik op <span class="tag">+</span>.</li>
         <li><b>Bewerken</b> (potloodje): naam, rondes (met − en +) en kleur.</li>
         <li><b>Verwijderen</b> (prullenbak): één klas weg.</li>
         <li><b>Zoeken:</b> handig bij veel klassen.</li>
@@ -150,15 +156,16 @@
         <li><b>Statistieken:</b> <i>Balken</i> per klas of <i>Stapel</i> voor het geheel.</li>
       </ul>
       <h3 style="margin-top:4mm">Knoppen bovenaan</h3>
-      <ul class="dots">
-        <li><b>?</b> hulp · <b>rood</b> alles wissen · <b>pijltjes</b> Data &amp; Beheer · <b>maan/zon</b> licht of donker.</li>
-      </ul>
+      <table class="keys">
+        <tr><td><span class="tag">?</span></td><td>Hulp en feedback</td><td><span class="tag">⇄</span></td><td>Data &amp; Beheer</td></tr>
+        <tr><td><span class="tag" style="color:#dc2626">🗑</span></td><td>Alles wissen</td><td><span class="tag">🌙</span></td><td>Licht of donker</td></tr>
+      </table>
       <div class="warn"><b>Let op:</b> de rode prullenbak bovenaan wist <b>alle</b> klassen en rondes. Maak eerst een export.</div>
     </div>
   </div>
-  <div class="grid2" style="grid-template-columns:58mm 1fr;margin-top:5mm;align-items:center">
+  <div class="grid2" style="grid-template-columns:58mm 1fr;margin-top:5mm;align-items:start">
     <div><img class="shot phone" src="img/klas-bewerken.png" style="height:62mm;object-fit:cover;object-position:50% 36%"><div class="cap">Een klas bewerken</div></div>
-    <div class="tip" style="margin:0"><b>Tip:</b> tik je te vaak of mis je een rondje? Pas het aantal direct aan met <span class="tag">−</span> en <span class="tag">+</span> bij het bewerken van de klas.</div>
+    <div class="tip" style="margin:6mm 0 0"><b>Tip:</b> tik je te vaak of mis je een rondje? Pas het aantal direct aan met <span class="tag">−</span> en <span class="tag">+</span> bij het bewerken van de klas.</div>
   </div>
   <div class="foot"><span>Sponsorloop Tracker · Handleiding</span><span>4</span></div>
 </section>
@@ -168,8 +175,8 @@
   <div class="eyebrow">Gegevens</div>
   <h1>Data bewaren</h1>
   <p class="lead">De tracker slaat alles op in de browser van het apparaat waarop je telt. Er is geen account en de gegevens staan niet op internet (behalve tijdens Live Sync, zie volgende pagina).</p>
-  <div class="grid2" style="grid-template-columns: 70mm 1fr; margin-top:4mm; align-items:start">
-    <div><img class="shot phone" src="img/data-beheer.png"><div class="cap">Data &amp; Beheer (pijltjes-knop in Beheer)</div></div>
+  <div class="grid2" style="grid-template-columns: 68mm 1fr; margin-top:5mm; align-items:start">
+    <div><img class="shot" src="img/data-beheer-crop.png" style="border-radius:6mm"><div class="cap">Data &amp; Beheer (pijltjes-knop in Beheer)</div></div>
     <div>
       <h3>Exporteren (backup maken)</h3>
       <p>Downloadt een bestand, bijvoorbeeld <code>sponsorloop-backup-2026-05-14-15-30-00.json</code>, met alle klassen, rondes en het schooldoel.</p>
@@ -180,7 +187,11 @@
     </div>
   </div>
   <h2>Welk apparaat?</h2>
-  <p>Tel op <b>één vast apparaat</b> (bijvoorbeeld het digibord). Elk apparaat heeft zijn eigen opslag: rondes op de telefoon zie je niet automatisch op het digibord. Wil je wisselen van apparaat, exporteer dan en importeer op het andere apparaat.</p>
+  <div class="grid3" style="margin-top:3mm">
+    <div class="card"><h3>📱 Eén vast apparaat</h3><p class="muted" style="margin:0">Tel op één apparaat, bijvoorbeeld het digibord. Iedereen kan daarop tikken.</p></div>
+    <div class="card"><h3>💾 Eigen opslag</h3><p class="muted" style="margin:0">Elk apparaat bewaart zijn eigen rondes. De telefoon ziet niet wat het digibord telde.</p></div>
+    <div class="card"><h3>🔁 Wisselen?</h3><p class="muted" style="margin:0">Exporteer op het oude apparaat en importeer op het nieuwe. Alles komt mee.</p></div>
+  </div>
   <div class="foot"><span>Sponsorloop Tracker · Handleiding</span><span>5</span></div>
 </section>
 
@@ -271,37 +282,7 @@
     <div><h3>Als app installeren</h3><p class="muted" style="margin:0">Chrome of Edge: menu → <i>App installeren</i> / <i>Toevoegen aan startscherm</i>. Opent als losse app met eigen icoon.</p></div>
     <div><h3>OBS / livestream</h3><p class="muted" style="margin:0"><span class="tag">OBS-link kopiëren</span> op de stream-pagina geeft de live stand met doorzichtige achtergrond (<i>Browser-bron</i>). Met de code kun je alleen meekijken.</p></div>
   </div>
-  <div class="foot"><span>Sponsorloop Tracker · Handleiding</span><span>8</span></div>
-</section>
-
-<!-- 9. TECHNIEK & OVERDRACHT -->
-<section class="page">
-  <div class="eyebrow">Voor de beheerder</div>
-  <h1>Techniek en overdracht</h1>
-  <p class="lead">Wat er achter de app zit, en wat er moet gebeuren als de maker niet meer op school is.</p>
-  <table style="margin-top:3mm">
-    <tr><th style="width:38mm">Onderdeel</th><th>Waar</th></tr>
-    <tr><td><b>Website</b></td><td><span class="url">https://h4sw5q2wr9-byte.github.io/SponsorLoop/</span><br><span class="muted">Gratis gehost via GitHub Pages.</span></td></tr>
-    <tr><td><b>Broncode</b></td><td><span class="url">github.com/h4sw5q2wr9-byte/SponsorLoop</span><br><span class="muted">React + Vite. Elke wijziging wordt automatisch getest en gepubliceerd.</span></td></tr>
-    <tr><td><b>Live Sync</b></td><td>Firebase Realtime Database <code>sponsorloop-1eb58</code> (gratis). Alleen de tracker die een code start kan die wijzigen; kijkers kunnen alleen meekijken. Regels: <code>docs/firebase-rules.json</code>.</td></tr>
-    <tr><td><b>Feedback &amp; onderhoud</b></td><td>Meldingen uit de app worden elk half uur een <b>GitHub-issue</b>; oude Live Sync-codes worden opgeruimd. Nodig: GitHub-secret <code>FIREBASE_SERVICE_ACCOUNT</code>.</td></tr>
-    <tr><td><b>Gegevens</b></td><td>Klassen en rondes staan in de browser (localStorage). Bij Live Sync gaan alleen klasnamen, rondes, kleuren en het schooldoel tijdelijk naar Firebase. Geen persoonsgegevens.</td></tr>
-  </table>
-
-  <h2>Als de maker van school gaat</h2>
-  <div class="card">
-    <p><b>De tracker blijft werken</b> zolang de GitHub-pagina en het Firebase-project bestaan. Beide staan op het account van de maker. Advies:</p>
-    <ol class="steps" style="margin-top:3mm">
-      <li><b>GitHub:</b> laat de repository overdragen aan een schoolaccount (<i>Settings → Transfer ownership</i>), of maak een kopie (<i>Fork</i>) op een schoolaccount en zet daar GitHub Pages aan (<i>Settings → Pages → GitHub Actions</i>). Het webadres verandert dan mee.</li>
-      <li><b>Firebase:</b> laat een schoolaccount toevoegen als eigenaar van het project (<i>Project-instellingen → Gebruikers en rechten</i>). Laat <i>Authentication → Anonymous</i> aan staan.</li>
-      <li><b>Klassenbestand:</b> bewaar de export met alle klassen op een gedeelde schoolschijf.</li>
-      <li><b>Contactpersoon:</b> zet de nieuwe naam in <code>src/lib/config.js</code>. Bij een kopie van de repository: het secret <code>FIREBASE_SERVICE_ACCOUNT</code> opnieuw toevoegen.</li>
-    </ol>
-  </div>
-  <div class="tip"><b>Zonder Live Sync</b> heb je Firebase niet nodig: het tellen, beheer, statistieken en import/export werken volledig los daarvan.</div>
-
-  <p class="muted" style="font-size:9pt;margin-top:3mm"><b>Aanpassingen maken:</b> de code staat in duidelijke mappen en wordt uitgelegd in de README (ook een tabel met instellingen). Met <code>npm install</code>, <code>npm run dev</code> en <code>npm test</code> kan iemand met wat programmeerervaring verder bouwen.</p>
-  <div class="foot"><span>Sponsorloop Tracker · Handleiding · Gemaakt door Tijn van Kemenade</span><span>9</span></div>
+  <div class="foot"><span>Sponsorloop Tracker · Handleiding · Gemaakt door Tijn van Kemenade</span><span>8</span></div>
 </section>
 
 </body>
