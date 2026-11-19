@@ -1,5 +1,7 @@
 # Sponsorloop Tracker
 
+📄 **Handleiding (PDF):** [docs/Sponsorloop-Tracker-Handleiding.pdf](docs/Sponsorloop-Tracker-Handleiding.pdf)
+
 Rondjes tellen tijdens de sponsorloop, met een live stand en een onthulling voor op het grote scherm.
 
 - **Tracker** (`index.html`): klas kiezen en op de grote knop tikken.
@@ -36,4 +38,5 @@ src/
   stream/            de stream-pagina (live stand + onthulling)
 tests/               tests voor de logica in lib/
 test-data/           voorbeeldbestand om te importeren
+docs/                handleiding (PDF + bron in docs/handleiding)
 ```
