@@ -84,7 +84,7 @@ export default function TrackerPage({ classes, sortedClasses, goal, selected, on
         >
           <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.25),transparent_70%)]" />
-          <span className={`text-[min(35vw,25vh)] font-black tabular-nums tracking-tighter leading-none drop-shadow-lg ${anim === 'up' ? 'animate-pop' : ''} ${anim === 'down' ? 'animate-pop-down' : ''}`}>
+          <span className={`count-text font-black tabular-nums tracking-tighter leading-none drop-shadow-lg ${anim === 'up' ? 'animate-pop' : ''} ${anim === 'down' ? 'animate-pop-down' : ''}`}>
             {selected?.laps || 0}
           </span>
         </button>
