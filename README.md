@@ -17,9 +17,8 @@ De tracker logt **anoniem** in (Firebase Authentication → Anonymous moet aan s
 start, kan die code wijzigen of verwijderen; kijkers (stream-pagina) kunnen alleen lezen.
 De regels staan in [`docs/firebase-rules.json`](docs/firebase-rules.json) (plakken bij Realtime Database → Rules).
 
-Firebase is alleen een doorgeefluik: de echte gegevens staan op het tracker-apparaat. Codes die langer dan een dag
-niet actief zijn worden elke nacht opgeruimd door `.github/workflows/cleanup.yml` (gratis, via GitHub Actions).
-Daarvoor is het GitHub-secret `FIREBASE_SERVICE_ACCOUNT` nodig. Handmatig kan ook: Realtime Database → Data → `sessions` verwijderen.
+Firebase is alleen een doorgeefluik: de echte gegevens staan op het tracker-apparaat. De tracker ruimt zijn eigen
+oude codes op (bij een nieuwe code of na een dag). Alles opruimen kan veilig met de hand: Realtime Database → Data → `sessions` verwijderen.
 
 ## Ontwikkelen
 ```bash
