@@ -208,7 +208,7 @@
     <div><img class="shot" src="img/stream-code.png" style="height:62mm;object-fit:cover;object-position:top"><div class="cap">Code invullen</div></div>
     <div><img class="shot" src="img/stream-overzicht.png" style="height:62mm;object-fit:cover;object-position:top"><div class="cap">Overzicht met de keuze voor Live stand of Onthulling</div></div>
   </div>
-  <div class="tip"><b>Goed om te weten:</b> Live Sync staat bij het openen altijd <b>uit</b>. Na herladen kies je <i>Verder met &lt;code&gt;</i>, dan blijft de stream-pagina gewoon werken. <span class="tag">Stop Sync</span> wist de gedeelde gegevens. Vergeten te stoppen? Dan ruimt de tracker de oude code zelf op (bij een nieuwe code, of na een dag).</div>
+  <div class="tip"><b>Goed om te weten:</b> het andere scherm is binnen ongeveer 2 seconden bijgewerkt. Live Sync staat bij het openen altijd <b>uit</b>. Na herladen kies je <i>Verder met &lt;code&gt;</i>, dan blijft de stream-pagina gewoon werken. <span class="tag">Stop Sync</span> wist de gedeelde gegevens. Vergeten te stoppen? Dan ruimt de tracker de oude code zelf op (bij een nieuwe code, of na een dag).</div>
   <div class="foot"><span>Sponsorloop Tracker · Handleiding</span><span>6</span></div>
 </section>
 
@@ -255,6 +255,7 @@
         <tr><th>Probleem</th><th>Oplossing</th></tr>
         <tr><td>Leeg of vreemd scherm</td><td>Pagina vernieuwen. Op een tv: tabblad sluiten en opnieuw openen.</td></tr>
         <tr><td>Melding <i>Oudere browser</i></td><td>De site werkt, maar soms minder mooi. Gebruik bij voorkeur Chrome of Edge.</td></tr>
+        <tr><td>Live Sync: <i>Niet beschikbaar</i></td><td>Tellen gaat gewoon door. Blijft het zo? Meld het via <i>Probleem melden</i>.</td></tr>
         <tr><td>Live Sync: <i>Geen verbinding</i></td><td>Internet controleren. De app probeert het vanzelf opnieuw.</td></tr>
         <tr><td>Stream: <i>Tracker niet actief</i></td><td>Live Sync staat uit. Start of hervat het in de tracker.</td></tr>
         <tr><td>Wifi valt weg</td><td>Gewoon doortellen: de tracker werkt offline. Live Sync gaat vanzelf verder als het internet terug is.</td></tr>
@@ -264,10 +265,12 @@
       </table>
     </div>
   </div>
-  <h2>Als app installeren</h2>
-  <p>In Chrome of Edge kun je de tracker als app op een tablet of laptop zetten (menu → <i>App installeren</i> / <i>Toevoegen aan startscherm</i>). Hij opent dan als losse app met eigen icoon.</p>
-  <h2>OBS / livestream</h2>
-  <p>Op de stream-pagina geeft <span class="tag">OBS-link kopiëren</span> een link naar de live stand met doorzichtige achtergrond. Voeg die in OBS toe als <i>Browser-bron</i>. Wie de code heeft kan alleen meekijken, niet de stand aanpassen.</p>
+  <h2>Idee of probleem?</h2>
+  <p>Via <span class="tag">Beheer</span> → <span class="tag">?</span> → <i>Idee of probleem melden</i> (of op de stream-pagina via de <span class="tag">i</span>) stuur je een bericht naar de beheerder. Bij een probleem gaat technische info automatisch mee. Zet er geen persoonlijke gegevens in: het bericht komt openbaar op GitHub.</p>
+  <div class="grid2" style="margin-top:4mm;font-size:9.5pt">
+    <div><h3>Als app installeren</h3><p class="muted" style="margin:0">Chrome of Edge: menu → <i>App installeren</i> / <i>Toevoegen aan startscherm</i>. Opent als losse app met eigen icoon.</p></div>
+    <div><h3>OBS / livestream</h3><p class="muted" style="margin:0"><span class="tag">OBS-link kopiëren</span> op de stream-pagina geeft de live stand met doorzichtige achtergrond (<i>Browser-bron</i>). Met de code kun je alleen meekijken.</p></div>
+  </div>
   <div class="foot"><span>Sponsorloop Tracker · Handleiding</span><span>8</span></div>
 </section>
 
@@ -280,7 +283,8 @@
     <tr><th style="width:38mm">Onderdeel</th><th>Waar</th></tr>
     <tr><td><b>Website</b></td><td><span class="url">https://h4sw5q2wr9-byte.github.io/SponsorLoop/</span><br><span class="muted">Gratis gehost via GitHub Pages.</span></td></tr>
     <tr><td><b>Broncode</b></td><td><span class="url">github.com/h4sw5q2wr9-byte/SponsorLoop</span><br><span class="muted">React + Vite. Elke wijziging wordt automatisch getest en gepubliceerd.</span></td></tr>
-    <tr><td><b>Live Sync</b></td><td>Firebase Realtime Database, project <code>sponsorloop-1eb58</code> (gratis Spark-abonnement). Beveiligd: alleen de tracker die een code start kan die wijzigen (anonieme login); kijkers kunnen alleen meekijken. Regels: <code>docs/firebase-rules.json</code>.</td></tr>
+    <tr><td><b>Live Sync</b></td><td>Firebase Realtime Database <code>sponsorloop-1eb58</code> (gratis). Alleen de tracker die een code start kan die wijzigen; kijkers kunnen alleen meekijken. Regels: <code>docs/firebase-rules.json</code>.</td></tr>
+    <tr><td><b>Feedback &amp; onderhoud</b></td><td>Meldingen uit de app worden elk half uur een <b>GitHub-issue</b>; oude Live Sync-codes worden opgeruimd. Nodig: GitHub-secret <code>FIREBASE_SERVICE_ACCOUNT</code>.</td></tr>
     <tr><td><b>Gegevens</b></td><td>Klassen en rondes staan in de browser (localStorage). Bij Live Sync gaan alleen klasnamen, rondes, kleuren en het schooldoel tijdelijk naar Firebase. Geen persoonsgegevens.</td></tr>
   </table>
 
@@ -291,12 +295,12 @@
       <li><b>GitHub:</b> laat de repository overdragen aan een schoolaccount (<i>Settings → Transfer ownership</i>), of maak een kopie (<i>Fork</i>) op een schoolaccount en zet daar GitHub Pages aan (<i>Settings → Pages → GitHub Actions</i>). Het webadres verandert dan mee.</li>
       <li><b>Firebase:</b> laat een schoolaccount toevoegen als eigenaar van het project (<i>Project-instellingen → Gebruikers en rechten</i>). Laat <i>Authentication → Anonymous</i> aan staan.</li>
       <li><b>Klassenbestand:</b> bewaar de export met alle klassen op een gedeelde schoolschijf.</li>
+      <li><b>Contactpersoon:</b> zet de nieuwe naam in <code>src/lib/config.js</code>. Bij een kopie van de repository: het secret <code>FIREBASE_SERVICE_ACCOUNT</code> opnieuw toevoegen.</li>
     </ol>
   </div>
   <div class="tip"><b>Zonder Live Sync</b> heb je Firebase niet nodig: het tellen, beheer, statistieken en import/export werken volledig los daarvan.</div>
 
-  <h2>Aanpassingen maken</h2>
-  <p class="muted">De code is opgedeeld in duidelijke mappen (<code>src/pages</code>, <code>src/modals</code>, <code>src/lib</code>, <code>src/stream</code>) en uitgelegd in de README. Met <code>npm install</code>, <code>npm run dev</code> en <code>npm test</code> kan iemand met wat programmeerervaring verder bouwen.</p>
+  <p class="muted" style="font-size:9pt;margin-top:3mm"><b>Aanpassingen maken:</b> de code staat in duidelijke mappen en wordt uitgelegd in de README (ook een tabel met instellingen). Met <code>npm install</code>, <code>npm run dev</code> en <code>npm test</code> kan iemand met wat programmeerervaring verder bouwen.</p>
   <div class="foot"><span>Sponsorloop Tracker · Handleiding · Gemaakt door Tijn van Kemenade</span><span>9</span></div>
 </section>
 

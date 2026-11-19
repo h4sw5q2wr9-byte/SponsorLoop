@@ -1,55 +1,88 @@
 # Sponsorloop Tracker
 
 📄 **Handleiding (PDF):** [docs/Sponsorloop-Tracker-Handleiding.pdf](docs/Sponsorloop-Tracker-Handleiding.pdf)
+🌐 **Site:** https://h4sw5q2wr9-byte.github.io/SponsorLoop/
 
 Rondjes tellen tijdens de sponsorloop, met een live stand en een onthulling voor op het grote scherm.
+Gemaakt door Tijn van Kemenade.
 
-- **Tracker** (`index.html`): klas kiezen en op de grote knop tikken.
-- **Stream-pagina** (`stream.html`): live stand of onthulling van de uitslag.
+- **Tracker** (`index.html`): klas kiezen en op de grote knop tikken. Beheer: klassen, schooldoel, statistieken, import/export.
+- **Stream-pagina** (`stream.html`): **Live stand** (werkt vanzelf bij) of **Onthulling** (intro → top 3 → ranglijst → eindstand).
+- Werkt op telefoon, tablet, laptop, digibord en oude tv-browsers; na het eerste bezoek ook **offline**; te installeren als app.
+
+## Gegevens
+Klassen en rondes staan **alleen op het apparaat** waarop geteld wordt (localStorage). Exporteer na afloop altijd een
+backup (Beheer → Data & Beheer → Exporteren). Een klassenlijst staat in [`test-data/`](test-data/).
 
 ## Live Sync
-1. Tracker: **Beheer → Data & Beheer → Live Sync → Start Sync**.
-2. Andere computer: open `stream.html` en vul de code in.
-3. Kies **Live stand** of **Onthulling** (start met Spatie, daarna gaat het vanzelf). Stoppen: Esc of het kruisje.
+1. Tracker: **Beheer → Data & Beheer → Live Sync → Start Sync** (staat bij openen altijd uit).
+2. Ander scherm: open `stream.html` en vul de code in.
+3. Kies **Live stand** of **Onthulling**. Stoppen: Esc of het kruisje (verschijnt bij muisbeweging).
 
-Live Sync gebruikt Firebase Realtime Database (`src/lib/firebase.js`).
-De tracker logt **anoniem** in (Firebase Authentication → Anonymous moet aan staan). Alleen de tracker die een code
-start, kan die code wijzigen of verwijderen; kijkers (stream-pagina) kunnen alleen lezen.
-De regels staan in [`docs/firebase-rules.json`](docs/firebase-rules.json) (plakken bij Realtime Database → Rules).
+Hoe het werkt (`src/hooks/useLiveSync.js`, `src/lib/liveFeed.js`):
+- Firebase Realtime Database is alleen een **doorgeefluik**; de echte gegevens blijven op het tracker-apparaat.
+- Wijzigingen worden **2 seconden gebundeld** en daarna samen verstuurd; alleen wat veranderd is (bijv. één aantal rondes).
+- Uploads gaan **één voor één, op volgorde**; er worden altijd echte aantallen gestuurd (nooit "+1").
+- **Zelfherstellend:** na een fout of als de code in Firebase is opgeruimd wordt alles opnieuw gestuurd, en elke 5 minuten
+  gaat de volledige stand mee. Hartslag elke 30 s; de stream toont "Tracker niet actief" na 75 s stilte.
+- De stream-pagina krijgt wijzigingen **gepusht** (Firebase streaming) en valt terug op elke 2 s ophalen.
+- Offline doortellen kan; bij herstel van de verbinding wordt alles bijgewerkt.
 
-Firebase is alleen een doorgeefluik: de echte gegevens staan op het tracker-apparaat. De tracker ruimt zijn eigen
-oude codes op (bij een nieuwe code of na een dag). Alles opruimen kan veilig met de hand: Realtime Database → Data → `sessions` verwijderen.
+### Beveiliging
+- De tracker logt **anoniem** in (Firebase Authentication → Anonymous). Alleen de tracker die een code start, kan die
+  wijzigen of verwijderen; kijkers kunnen alleen lezen. De lijst met codes is niet op te vragen.
+- Regels: [`docs/firebase-rules.json`](docs/firebase-rules.json) (plakken bij Realtime Database → Rules).
+- De Web API key in `src/lib/firebase.js` is niet geheim; de beveiliging zit in de regels.
 
-## Feedback en problemen
-In de app (Beheer → ? → *Idee of probleem melden*, en op de stream-pagina in het info-venster) kunnen gebruikers
-een idee of probleem sturen. Dat komt in Firebase (`/feedback`, niet leesbaar voor anderen) en wordt elk half uur
-door `.github/workflows/maintenance.yml` omgezet in een **GitHub-issue** (label `idee` of `bug`). Dezelfde taak ruimt
-Live Sync-codes op die langer dan een dag niet actief zijn. Nodig: het secret
-`FIREBASE_SERVICE_ACCOUNT` (service-account JSON uit Firebase). Let op: issues in een openbare repo zijn openbaar.
+## Feedback en onderhoud
+- In de app (Beheer → ? → *Idee of probleem melden*, op de stream-pagina in het info-venster, en in foutmeldingen)
+  kan iedereen een idee of probleem sturen. Dat komt in Firebase (`/feedback`, voor niemand leesbaar).
+- [`.github/workflows/maintenance.yml`](.github/workflows/maintenance.yml) draait **elk half uur**:
+  meldingen worden **GitHub-issues** (label `idee` of `bug`) en Live Sync-codes die langer dan een dag niet actief
+  zijn worden opgeruimd. Een melding wordt pas uit Firebase verwijderd als het issue gemaakt is.
+- Nodig: GitHub-secret `FIREBASE_SERVICE_ACCOUNT` (service-account JSON uit Firebase, **geheim**).
+- Issues in een openbare repo zijn openbaar; het formulier waarschuwt hiervoor.
+- GitHub pauzeert geplande taken na 60 dagen zonder wijzigingen: dan onder *Actions* weer aanzetten (meldingen blijven bewaard).
+
+## Instellingen
+| Wat | Waar |
+|---|---|
+| Naam contactpersoon in foutmeldingen | `src/lib/config.js` (`CONTACT`) |
+| Naam op het intro-scherm van de onthulling | `src/stream/main.js` (`CREDIT`) |
+| Aantal klassen in de eerste onthulling (top 3) | `src/stream/main.js` (`PODIUM`) |
+| Firebase-adres en Web API key | `src/lib/firebase.js` |
+| Bundel-tijd en hartslag Live Sync | `src/hooks/useLiveSync.js` (`BATCH_MS`, `HEARTBEAT_MS`) |
 
 ## Ontwikkelen
 ```bash
 npm install
 npm run dev      # lokaal starten
-npm test         # tests
+npm test         # unit-tests (logica in src/lib en scripts)
 npm run build    # bouwt naar dist/
 node tests/e2e/event-check.cjs   # generale repetitie tegen de live site (Playwright)
 ```
-Elke push naar `main` wordt automatisch gebouwd en gepubliceerd (GitHub Actions → Pages).
+Elke push naar `main` wordt automatisch getest, gebouwd en gepubliceerd (GitHub Actions → Pages).
 
-De site werkt na het eerste bezoek ook offline (service worker via `vite-plugin-pwa`) en is te installeren als app. Firebase wordt nooit gecachet.
+**Voor elke sponsorloop:** draai de generale repetitie (`tests/e2e/event-check.cjs`): 100 rondjes + herladen,
+twee schermen live, wifi weg, export/import en de onthulling met 30 klassen.
+
+Oude browsers (bijv. Samsung-tv) krijgen een omgezette versie (`@vitejs/plugin-legacy`), CSS zonder moderne notatie
+(`postcss.config.js`), een `gap`-terugval (`public/compat.js`) en een melding *Oudere browser*.
 
 ## Mappen
 ```
 src/
-  App.jsx            hoofdcomponent: data, tabs en pop-ups
-  pages/             Tracker en Beheer
-  modals/            alle pop-ups
-  components/        knoppen, pop-up basis, grafiek, navigatie
-  hooks/useLiveSync  Live Sync naar Firebase
-  lib/               opslag, ranglijst, backup, kleuren, firebase
-  stream/            de stream-pagina (live stand + onthulling)
-tests/               tests voor de logica in lib/
-test-data/           voorbeeldbestand om te importeren
-docs/                handleiding (PDF + bron in docs/handleiding)
+  App.jsx              hoofdcomponent: data, tabs en pop-ups
+  pages/               Tracker en Beheer
+  modals/              alle pop-ups (o.a. Live Sync, Feedback)
+  components/          knoppen, pop-up basis, grafiek, ranglijst, navigatie
+  hooks/useLiveSync    Live Sync naar Firebase
+  lib/                 opslag, ranglijst, backup, kleuren, firebase, inloggen, feedback
+  stream/              de stream-pagina (live stand + onthulling)
+scripts/maintenance.mjs  feedback → issues + oude codes opruimen
+tests/                 unit-tests + tests/e2e (generale repetitie)
+test-data/             voorbeeldbestand om te importeren
+docs/                  handleiding (PDF + bron), Firebase-regels, Netlify-doorverwijzing
 ```
+
+De oude Netlify-site stuurt door naar deze site (`docs/netlify-redirect/`, zip in `docs/Netlify-doorsturen.zip`).
