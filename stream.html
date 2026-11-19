@@ -1,44 +1,292 @@
 <!DOCTYPE html>
-<html lang="nl"><head><meta charset="UTF-8"><title>Sponsorloop Live</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<script src="./firebase-config.js"></script>
-<style>
-  *{box-sizing:border-box}
-  body{margin:0;padding:24px;font-family:Inter,system-ui,sans-serif;color:#fff;background:transparent}
-  body.solid{background:#0f172a}
-  .card{max-width:900px;margin:auto;background:rgba(15,23,42,.85);border-radius:20px;padding:24px}
-  h1{margin:0 0 4px;font-size:28px}.sub{opacity:.7;margin-bottom:20px}
-  .row{margin:14px 0}.top{display:flex;justify-content:space-between;font-weight:700;font-size:22px}
-  .bar{height:22px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;margin-top:6px}
-  .fill{height:100%;border-radius:99px;transition:width .6s ease}
-  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;margin-right:8px}.dot.on{background:#22c55e}
-  #enter{text-align:center}#enter input{font:800 32px monospace;text-transform:uppercase;width:210px;text-align:center;padding:10px;border-radius:12px;border:0}
-  #enter button{font:700 18px Inter;padding:12px 20px;border-radius:12px;border:0;background:#4f46e5;color:#fff;margin-left:8px;cursor:pointer}
-</style></head><body>
-<div class="card">
-  <div id="enter"><h1>Voer de code in</h1><p class="sub">Je ziet de code in de tracker onder “Live sync”.</p>
-    <input id="code" maxlength="8" autofocus><button onclick="go()">Start</button></div>
-  <div id="live" style="display:none"><h1>Sponsorloop</h1>
-    <div class="sub"><span class="dot" id="dot"></span><span id="total">Verbinden…</span></div><div id="list"></div></div>
-</div>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f8fafc">
+  <title>Sponsorloop Live</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } };
+    (function () {
+      var t; try { t = localStorage.getItem('sponsorloop_theme'); } catch (e) {}
+      if (!t) t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      if (t === 'dark') document.documentElement.classList.add('dark');
+    })();
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="./firebase-config.js?v=2"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; background: #f8fafc; }
+    .dark body { background: #0f172a; }
+    body.transparent, .dark body.transparent { background: transparent !important; }
+    .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { scrollbar-width: none; }
+    @keyframes slide-up-fade { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: none; } }
+    .animate-slide-up { animation: slide-up-fade .5s cubic-bezier(.16,1,.3,1) both; }
+    @keyframes pulse-scale { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    .animate-pulse-scale { animation: pulse-scale 3s ease-in-out infinite; }
+    @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.12); } 100% { transform: scale(1); } }
+    .bump { animation: bump .5s cubic-bezier(.175,.885,.32,1.275); }
+    .bar { transition: width 1s cubic-bezier(.16,1,.3,1); }
+    #exitFs { transition: opacity .3s; }
+    .code-input { letter-spacing: .4em; }
+  </style>
+</head>
+<body class="min-h-[100dvh] text-slate-800 dark:text-slate-100 transition-colors duration-300">
+  <div id="app"></div>
+
 <script>
-var p=new URLSearchParams(location.search);
-if(p.has('solid'))document.body.classList.add('solid');
-var DB=(window.SL_DB_URL||'').replace(/\/$/,''),code;
-function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-function go(){code=document.getElementById('code').value.trim().toUpperCase();if(!code)return;
-  history.replaceState(0,'','?code='+code+(p.has('solid')?'&solid':''));
-  document.getElementById('enter').style.display='none';document.getElementById('live').style.display='block';poll();}
-function render(s){
-  var cl=(s.classes||[]).slice().sort((a,b)=>b.laps-a.laps),total=cl.reduce((a,c)=>a+c.laps,0),max=Math.max(1,...cl.map(c=>c.laps));
-  document.getElementById('total').textContent='Totaal: '+total+' rondes'+(s.schoolGoal?' / doel '+s.schoolGoal+' ('+Math.min(100,Math.round(total/s.schoolGoal*100))+'%)':'');
-  document.getElementById('list').innerHTML=cl.map(c=>'<div class="row"><div class="top"><span>'+esc(c.name)+'</span><span>'+c.laps+'</span></div><div class="bar"><div class="fill" style="width:'+c.laps/max*100+'%;background:'+esc(c.color)+'"></div></div></div>').join('');
-}
-function poll(){
-  fetch(DB+'/sessions/'+code+'.json',{cache:'no-store'}).then(r=>r.json()).then(s=>{
-    document.getElementById('dot').classList.add('on');
-    if(s)render(s);else document.getElementById('total').textContent='Wachten op de tracker… (code '+code+')';
-  }).catch(()=>document.getElementById('dot').classList.remove('on')).finally(()=>setTimeout(poll,1500));
-}
-if(p.get('code')){document.getElementById('code').value=p.get('code');go();}
-</script></body></html>
+(function () {
+  var FALLBACK_DB = 'https://sponsorloop-1eb58-default-rtdb.europe-west1.firebasedatabase.app';
+  var DB = (window.SL_DB_URL && !/VUL-HIER/.test(window.SL_DB_URL) ? window.SL_DB_URL : FALLBACK_DB).replace(/\/$/, '');
+  var params = new URLSearchParams(location.search);
+  var app = document.getElementById('app');
+
+  var S = {
+    view: 'connect',              // connect | preview | full
+    code: (params.get('code') || '').toUpperCase(),
+    data: null, net: 'idle',      // idle | ok | error
+    info: false, copied: false, error: '',
+    prevLaps: {}
+  };
+  if (params.get('bg') === 'transparent') document.body.classList.add('transparent');
+
+  // ---------- helpers ----------
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function col(c) { return /^#[0-9a-f]{3,8}$/i.test(c || '') ? c : '#3b82f6'; }
+  function svg(d, s) { return '<svg width="' + (s || 20) + '" height="' + (s || 20) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>'; }
+  var I = {
+    sun: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/>'),
+    moon: svg('<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>'),
+    info: svg('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>'),
+    x: svg('<path d="M18 6 6 18M6 6l12 12"/>'),
+    radio: function (s) { return svg('<path d="M4.9 19.1a10 10 0 0 1 0-14.2M7.8 16.2a6 6 0 0 1 0-8.4M16.2 7.8a6 6 0 0 1 0 8.4M19.1 4.9a10 10 0 0 1 0 14.2"/><circle cx="12" cy="12" r="2"/>', s); },
+    full: svg('<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>', 18),
+    copy: svg('<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>', 18),
+    back: svg('<path d="m15 18-6-6 6-6"/>', 18),
+    trophy: svg('<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2z"/>', 18)
+  };
+  var btn = 'font-bold transition-all active:scale-95 flex items-center justify-center gap-2 rounded-2xl ';
+  var C = {
+    primary: btn + 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200 dark:shadow-blue-900/20 px-5 py-3',
+    secondary: btn + 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 px-5 py-3',
+    ghost: btn + 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 py-2',
+    icon: 'p-3 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-2xl hover:bg-blue-50 dark:hover:bg-slate-700 active:scale-95 transition-all border border-slate-200 dark:border-slate-700 shadow-sm',
+    card: 'bg-white dark:bg-slate-800 rounded-[2rem] shadow-sm border border-slate-200/70 dark:border-slate-700',
+    label: 'text-[10px] uppercase text-slate-400 dark:text-slate-500 font-extrabold tracking-widest'
+  };
+  function isDark() { return document.documentElement.classList.contains('dark'); }
+
+  function stats() {
+    var d = S.data || {};
+    var cl = (d.classes || []).slice().sort(function (a, b) { return (b.laps || 0) - (a.laps || 0); });
+    var total = cl.reduce(function (s, c) { return s + (c.laps || 0); }, 0);
+    var max = Math.max(1, Math.max.apply(null, cl.map(function (c) { return c.laps || 0; }).concat([0])));
+    var goal = d.schoolGoal || null;
+    var pct = goal ? Math.min(100, Math.round(total / goal * 100)) : null;
+    var online = d.seenAt && Date.now() - d.seenAt < 45000;
+    return { cl: cl, total: total, max: max, goal: goal, pct: pct, online: online };
+  }
+
+  function chip() {
+    var st = stats(), m;
+    if (S.net === 'error') m = ['bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400', 'bg-red-500', 'Geen internet'];
+    else if (!S.data) m = ['bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400', 'bg-amber-500 animate-pulse', 'Wachten op tracker…'];
+    else if (st.online) m = ['bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400', 'bg-green-500 animate-pulse', 'Live'];
+    else m = ['bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400', 'bg-slate-400', 'Tracker offline'];
+    return '<span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ' + m[0] + '"><span class="w-2 h-2 rounded-full ' + m[1] + '"></span>' + m[2] + '</span>';
+  }
+
+  function header(extra) {
+    return '<header class="flex items-center justify-between gap-3 mb-6">' +
+      '<div class="flex items-center gap-3 min-w-0">' + (extra || '') +
+      '<div class="min-w-0"><h1 class="text-2xl font-black text-slate-900 dark:text-white leading-tight truncate">Sponsorloop Live</h1>' +
+      '<p class="text-sm font-medium text-slate-400 dark:text-slate-500">Stream-weergave</p></div></div>' +
+      '<div class="flex gap-2 shrink-0">' +
+      '<button data-a="info" aria-label="Uitleg" class="' + C.icon + '">' + I.info + '</button>' +
+      '<button data-a="theme" aria-label="Thema wisselen" class="' + C.icon + '">' + (isDark() ? I.sun : I.moon) + '</button>' +
+      '</div></header>';
+  }
+
+  function infoModal() {
+    if (!S.info) return '';
+    return '<div data-a="info-bg" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-md">' +
+      '<div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur w-full max-w-sm rounded-[2rem] shadow-2xl p-6 border border-white dark:border-slate-700">' +
+      '<div class="flex justify-between items-center mb-5"><h3 class="text-xl font-black text-slate-900 dark:text-white">Uitleg</h3>' +
+      '<button data-a="info" class="text-slate-400 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">' + I.x + '</button></div>' +
+      '<div class="space-y-3 text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed">' +
+      '<p><strong class="text-slate-900 dark:text-white">1. Code ophalen</strong><br>Open in de tracker <em>Beheer → Data &amp; Beheer → Live Sync</em> en druk op Start Sync.</p>' +
+      '<p><strong class="text-slate-900 dark:text-white">2. Verbinden</strong><br>Vul die code hier in. Je ziet eerst een voorbeeld van wat er binnenkomt.</p>' +
+      '<p><strong class="text-slate-900 dark:text-white">3. Fullscreen</strong><br>Druk op <em>Start fullscreen</em> voor een schone weergave. Verlaten met <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-xs">Esc</kbd> of de knop rechtsboven.</p>' +
+      '<p><strong class="text-slate-900 dark:text-white">OBS</strong><br>Gebruik <em>Kopieer OBS-link</em> en voeg die toe als Browser-bron (transparante achtergrond).</p>' +
+      '</div></div></div>';
+  }
+
+  // ---------- views ----------
+  function viewConnect() {
+    return '<main class="max-w-md mx-auto px-4 py-8 animate-slide-up">' + header() +
+      '<div class="' + C.card + ' p-8">' +
+      '<div class="flex justify-center mb-6"><div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-full text-blue-600 dark:text-blue-400 animate-pulse-scale">' + I.radio(32) + '</div></div>' +
+      '<h2 class="text-xl font-black text-center text-slate-900 dark:text-white mb-2">Voer de code in</h2>' +
+      '<p class="text-slate-500 dark:text-slate-400 text-center mb-6 font-medium text-sm">Je vindt de code in de tracker onder <strong>Data &amp; Beheer → Live Sync</strong>.</p>' +
+      '<form data-f="connect" class="flex flex-col gap-3">' +
+      '<input id="codeIn" value="' + esc(S.code) + '" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCDE" ' +
+      'class="code-input w-full text-center text-3xl font-black uppercase py-4 rounded-2xl bg-slate-50 dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 outline-none text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors">' +
+      (S.error ? '<p class="text-sm text-center font-bold text-red-500">' + esc(S.error) + '</p>' : '') +
+      '<button type="submit" class="' + C.primary + ' w-full py-4 text-lg">Verbinden</button>' +
+      '</form></div></main>';
+  }
+
+  function viewPreview() {
+    var st = stats(), d = S.data;
+    var upd = d && d.updatedAt ? new Date(d.updatedAt).toLocaleTimeString('nl-NL') : '—';
+    var list = st.cl.length ? st.cl.map(function (c, i) {
+      return '<li class="flex items-center gap-3 py-2.5">' +
+        '<span class="w-6 text-sm font-black text-slate-400 tabular-nums">' + (i + 1) + '</span>' +
+        '<span class="w-3 h-3 rounded-full shrink-0" style="background:' + col(c.color) + '"></span>' +
+        '<span class="font-bold truncate flex-1">' + esc(c.name) + '</span>' +
+        '<span class="font-black tabular-nums">' + (c.laps || 0) + '</span></li>';
+    }).join('') : '<li class="py-6 text-center text-sm text-slate-400 font-medium">Nog geen klassen ontvangen</li>';
+
+    return '<main class="max-w-2xl mx-auto px-4 py-8 animate-slide-up">' +
+      header('<button data-a="back" aria-label="Andere code" class="' + C.icon + ' text-slate-500 dark:text-slate-400">' + I.back + '</button>') +
+      '<div class="' + C.card + ' p-5 mb-4 flex flex-wrap items-center justify-between gap-3">' +
+      '<div class="flex items-center gap-3"><span class="' + C.label + '">Code</span><span class="text-xl font-black tracking-[.3em] text-slate-900 dark:text-white">' + esc(S.code) + '</span></div>' +
+      '<div class="flex items-center gap-3"><span class="text-xs font-medium text-slate-400">Update ' + upd + '</span>' + chip() + '</div></div>' +
+
+      '<div class="grid grid-cols-2 gap-4 mb-4">' +
+      '<div class="' + C.card + ' p-5"><p class="' + C.label + ' mb-1">Totaal rondes</p><p class="text-4xl font-black tabular-nums text-slate-900 dark:text-white">' + st.total + '</p></div>' +
+      '<div class="' + C.card + ' p-5"><p class="' + C.label + ' mb-1">School doel</p>' +
+      (st.goal ? '<p class="text-4xl font-black tabular-nums text-slate-900 dark:text-white">' + st.pct + '<span class="text-xl text-slate-400">%</span></p>' +
+        '<div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden mt-2"><div class="bar h-full bg-blue-500 rounded-full" style="width:' + st.pct + '%"></div></div>' +
+        '<p class="text-xs text-slate-400 font-medium mt-1 tabular-nums">' + st.total + ' / ' + st.goal + '</p>'
+        : '<p class="text-sm font-medium text-slate-400 dark:text-slate-600 italic mt-3">Geen ingesteld</p>') +
+      '</div></div>' +
+
+      '<div class="' + C.card + ' p-5 mb-6"><p class="' + C.label + ' mb-2">Klassen (' + st.cl.length + ')</p>' +
+      '<ul class="divide-y divide-slate-100 dark:divide-slate-700 max-h-72 overflow-y-auto no-scrollbar">' + list + '</ul></div>' +
+
+      '<div class="flex flex-col sm:flex-row gap-3">' +
+      '<button data-a="full" class="' + C.primary + ' flex-1 py-4 text-lg">' + I.full + ' Start fullscreen</button>' +
+      '<button data-a="copy" class="' + C.secondary + ' sm:w-56">' + I.copy + (S.copied ? ' Gekopieerd!' : ' Kopieer OBS-link') + '</button>' +
+      '</div></main>';
+  }
+
+  function viewFull() {
+    var st = stats(), many = st.cl.length > 8;
+    var rows = st.cl.map(function (c, i) {
+      var bumped = S.prevLaps[c.name] != null && S.prevLaps[c.name] < c.laps;
+      return '<div class="flex items-center gap-4 ' + (many ? 'py-1.5' : 'py-2.5') + '">' +
+        '<span class="w-10 text-center text-2xl font-black tabular-nums ' + (i === 0 ? 'text-amber-500' : 'text-slate-400 dark:text-slate-500') + '">' + (i + 1) + '</span>' +
+        '<div class="flex-1 min-w-0">' +
+        '<div class="flex justify-between items-baseline mb-1.5"><span class="' + (many ? 'text-xl' : 'text-2xl') + ' font-bold truncate">' + esc(c.name) + '</span>' +
+        '<span class="' + (many ? 'text-2xl' : 'text-3xl') + ' font-black tabular-nums ml-4 ' + (bumped ? 'bump' : '') + '">' + (c.laps || 0) + '</span></div>' +
+        '<div class="w-full bg-slate-200/70 dark:bg-slate-700/70 ' + (many ? 'h-3' : 'h-4') + ' rounded-full overflow-hidden"><div class="bar h-full rounded-full" style="width:' + ((c.laps || 0) / st.max * 100) + '%;background:' + col(c.color) + '"></div></div>' +
+        '</div></div>';
+    }).join('');
+    return '<main id="full" class="min-h-[100dvh] flex flex-col px-[4vw] py-[4vh]">' +
+      '<button id="exitFs" data-a="exit" aria-label="Sluiten" class="fixed top-4 right-4 z-10 opacity-0 ' + C.icon + ' text-slate-500">' + I.x + '</button>' +
+      '<div class="flex items-end justify-between gap-6 mb-[3vh]">' +
+      '<div><p class="' + C.label + ' text-xs mb-1 flex items-center gap-2"><span class="w-2 h-2 rounded-full ' + (st.online ? 'bg-red-500 animate-pulse' : 'bg-slate-400') + '"></span>Live stand</p>' +
+      '<h1 class="text-5xl font-black text-slate-900 dark:text-white">Sponsorloop</h1></div>' +
+      '<div class="text-right"><p class="' + C.label + ' text-xs mb-1">Totaal rondes</p><p class="text-7xl font-black tabular-nums text-blue-600 dark:text-blue-400 leading-none">' + st.total + '</p></div>' +
+      '</div>' +
+      (st.goal ? '<div class="mb-[3vh]"><div class="flex justify-between mb-2 font-bold text-slate-500 dark:text-slate-400"><span class="flex items-center gap-2">' + I.trophy + ' School doel: ' + st.goal + '</span><span class="tabular-nums">' + st.pct + '%</span></div>' +
+        '<div class="w-full bg-slate-200/70 dark:bg-slate-700/70 h-5 rounded-full overflow-hidden"><div class="bar h-full bg-blue-500 rounded-full" style="width:' + st.pct + '%"></div></div></div>' : '') +
+      '<div class="flex-1 flex flex-col justify-center">' + (rows || '<p class="text-center text-2xl font-bold text-slate-400">Wachten op data…</p>') + '</div>' +
+      '</main>';
+  }
+
+  function render() {
+    var focusCode = document.activeElement && document.activeElement.id === 'codeIn';
+    var v = S.view === 'connect' ? viewConnect() : S.view === 'preview' ? viewPreview() : viewFull();
+    app.innerHTML = v + infoModal();
+    if (S.view === 'connect') { var inp = document.getElementById('codeIn'); if (inp && (focusCode || !S.info)) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } }
+    var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.setAttribute('content', isDark() ? '#0f172a' : '#f8fafc');
+    S.prevLaps = {}; (S.data && S.data.classes || []).forEach(function (c) { S.prevLaps[c.name] = c.laps; });
+  }
+
+  // ---------- data ----------
+  var pollT = null, pollId = 0;
+  function poll() {
+    clearTimeout(pollT);
+    var id = ++pollId, code = S.code;
+    fetch(DB + '/sessions/' + encodeURIComponent(code) + '.json', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (d) {
+        if (id !== pollId) return;
+        var changed = JSON.stringify(d) !== JSON.stringify(S.data) || S.net !== 'ok';
+        S.data = d; S.net = 'ok';
+        if (changed && S.view !== 'connect') render();
+      })
+      .catch(function () { if (id !== pollId) return; if (S.net !== 'error') { S.net = 'error'; if (S.view !== 'connect') render(); } })
+      .finally(function () { if (id === pollId && S.view !== 'connect') pollT = setTimeout(poll, 1500); });
+  }
+  function connect(code) {
+    code = (code || '').trim().toUpperCase();
+    if (!/^[A-Z0-9]{4,8}$/.test(code)) { S.error = 'Vul de code van 5 tekens in.'; render(); return; }
+    S.code = code; S.error = ''; S.data = null; S.net = 'idle'; S.view = 'preview';
+    setUrl(); render(); poll();
+  }
+  function setUrl() {
+    var p = new URLSearchParams();
+    if (S.code && S.view !== 'connect') p.set('code', S.code);
+    if (S.view === 'full') p.set('view', 'full');
+    if (params.get('bg')) p.set('bg', params.get('bg'));
+    history.replaceState(null, '', location.pathname + (p.toString() ? '?' + p : ''));
+  }
+
+  // ---------- fullscreen ----------
+  function enterFull() {
+    S.view = 'full'; setUrl(); render();
+    var el = document.documentElement;
+    if (el.requestFullscreen && !document.fullscreenElement) el.requestFullscreen().catch(function () {});
+  }
+  function exitFull() {
+    if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+    S.view = 'preview'; setUrl(); render();
+  }
+  var hideT;
+  document.addEventListener('mousemove', function () {
+    var b = document.getElementById('exitFs'); if (!b) return;
+    b.style.opacity = '1'; document.body.style.cursor = '';
+    clearTimeout(hideT); hideT = setTimeout(function () { b.style.opacity = '0'; if (S.view === 'full') document.body.style.cursor = 'none'; }, 2000);
+  });
+  document.addEventListener('fullscreenchange', function () { if (!document.fullscreenElement && S.view === 'full' && !params.get('bg')) exitFull(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { if (S.info) { S.info = false; render(); } else if (S.view === 'full') exitFull(); }
+    if ((e.key === 'f' || e.key === 'F') && S.view === 'preview') enterFull();
+  });
+
+  // ---------- events ----------
+  app.addEventListener('submit', function (e) { e.preventDefault(); connect(document.getElementById('codeIn').value); });
+  app.addEventListener('input', function (e) { if (e.target.id === 'codeIn') { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); S.code = e.target.value; } });
+  app.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-a]'); if (!t) return;
+    var a = t.getAttribute('data-a');
+    if (a === 'info-bg' && t !== e.target) return;
+    if (a === 'info' || a === 'info-bg') { S.info = !S.info; render(); }
+    else if (a === 'theme') {
+      var dark = !isDark(); document.documentElement.classList.toggle('dark', dark);
+      try { localStorage.setItem('sponsorloop_theme', dark ? 'dark' : 'light'); } catch (er) {}
+      render();
+    }
+    else if (a === 'back') { pollId++; clearTimeout(pollT); S.view = 'connect'; S.data = null; setUrl(); render(); }
+    else if (a === 'full') enterFull();
+    else if (a === 'exit') exitFull();
+    else if (a === 'copy') {
+      var url = location.origin + location.pathname + '?code=' + S.code + '&view=full&bg=transparent';
+      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).catch(function () { prompt('Kopieer deze link:', url); });
+      S.copied = true; render(); setTimeout(function () { S.copied = false; if (S.view === 'preview') render(); }, 1500);
+    }
+  });
+  // "x seconden geleden"/online-status bijwerken
+  setInterval(function () { if (S.view === 'preview' && S.data) render(); }, 15000);
+
+  // ---------- start ----------
+  if (S.code) { S.view = params.get('view') === 'full' ? 'full' : 'preview'; render(); poll(); }
+  else render();
+})();
+</script>
+</body>
+</html>
