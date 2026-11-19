@@ -267,7 +267,7 @@
   <h2>Als app installeren</h2>
   <p>In Chrome of Edge kun je de tracker als app op een tablet of laptop zetten (menu → <i>App installeren</i> / <i>Toevoegen aan startscherm</i>). Hij opent dan als losse app met eigen icoon.</p>
   <h2>OBS / livestream</h2>
-  <p>Op de stream-pagina geeft <span class="tag">OBS-link kopiëren</span> een link naar de live stand met doorzichtige achtergrond. Voeg die in OBS toe als <i>Browser-bron</i>. Houd de code en link voor jezelf, want wie de code heeft kan meekijken.</p>
+  <p>Op de stream-pagina geeft <span class="tag">OBS-link kopiëren</span> een link naar de live stand met doorzichtige achtergrond. Voeg die in OBS toe als <i>Browser-bron</i>. Wie de code heeft kan alleen meekijken, niet de stand aanpassen.</p>
   <div class="foot"><span>Sponsorloop Tracker · Handleiding</span><span>8</span></div>
 </section>
 
@@ -280,7 +280,7 @@
     <tr><th style="width:38mm">Onderdeel</th><th>Waar</th></tr>
     <tr><td><b>Website</b></td><td><span class="url">https://h4sw5q2wr9-byte.github.io/SponsorLoop/</span><br><span class="muted">Gratis gehost via GitHub Pages.</span></td></tr>
     <tr><td><b>Broncode</b></td><td><span class="url">github.com/h4sw5q2wr9-byte/SponsorLoop</span><br><span class="muted">React + Vite. Elke wijziging wordt automatisch getest en gepubliceerd.</span></td></tr>
-    <tr><td><b>Live Sync</b></td><td>Firebase Realtime Database, project <code>sponsorloop-1eb58</code> (gratis Spark-abonnement).</td></tr>
+    <tr><td><b>Live Sync</b></td><td>Firebase Realtime Database, project <code>sponsorloop-1eb58</code> (gratis Spark-abonnement). Beveiligd: alleen de tracker die een code start kan die wijzigen (anonieme login); kijkers kunnen alleen meekijken. Regels: <code>docs/firebase-rules.json</code>.</td></tr>
     <tr><td><b>Gegevens</b></td><td>Klassen en rondes staan in de browser (localStorage). Bij Live Sync gaan alleen klasnamen, rondes, kleuren en het schooldoel tijdelijk naar Firebase. Geen persoonsgegevens.</td></tr>
   </table>
 
@@ -289,7 +289,7 @@
     <p><b>De tracker blijft werken</b> zolang de GitHub-pagina en het Firebase-project bestaan. Beide staan op het account van de maker. Advies:</p>
     <ol class="steps" style="margin-top:3mm">
       <li><b>GitHub:</b> laat de repository overdragen aan een schoolaccount (<i>Settings → Transfer ownership</i>), of maak een kopie (<i>Fork</i>) op een schoolaccount en zet daar GitHub Pages aan (<i>Settings → Pages → GitHub Actions</i>). Het webadres verandert dan mee.</li>
-      <li><b>Firebase:</b> laat een schoolaccount toevoegen als eigenaar van het project (<i>Project-instellingen → Gebruikers en rechten</i>).</li>
+      <li><b>Firebase:</b> laat een schoolaccount toevoegen als eigenaar van het project (<i>Project-instellingen → Gebruikers en rechten</i>). Laat <i>Authentication → Anonymous</i> aan staan.</li>
       <li><b>Klassenbestand:</b> bewaar de export met alle klassen op een gedeelde schoolschijf.</li>
     </ol>
   </div>

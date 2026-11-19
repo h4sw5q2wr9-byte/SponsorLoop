@@ -12,34 +12,10 @@ Rondjes tellen tijdens de sponsorloop, met een live stand en een onthulling voor
 2. Andere computer: open `stream.html` en vul de code in.
 3. Kies **Live stand** of **Onthulling** (start met Spatie, daarna gaat het vanzelf). Stoppen: Esc of het kruisje.
 
-Live Sync gebruikt Firebase Realtime Database (`src/lib/firebase.js`). Huidige regels: alleen geldige codes,
-alleen data in de vorm die de tracker stuurt, en de lijst met alle codes is niet op te vragen:
-```json
-{
-  "rules": {
-    "sessions": {
-      "$code": {
-        ".read": "$code.matches(/^[A-Z2-9]{5}$/)",
-        ".write": "$code.matches(/^[A-Z2-9]{5}$/)",
-        ".validate": "newData.hasChild('updatedAt')",
-        "classes": {
-          "$i": {
-            ".validate": "$i.matches(/^[0-9]{1,2}$/) && newData.hasChildren(['name', 'laps'])",
-            "name": { ".validate": "newData.isString() && newData.val().length <= 60" },
-            "laps": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 100000" },
-            "color": { ".validate": "newData.isString() && newData.val().length <= 9" },
-            "$other": { ".validate": false }
-          }
-        },
-        "schoolGoal": { ".validate": "newData.isNumber()" },
-        "updatedAt": { ".validate": "newData.isNumber()" },
-        "seenAt": { ".validate": "newData.isNumber()" },
-        "$other": { ".validate": false }
-      }
-    }
-  }
-}
-```
+Live Sync gebruikt Firebase Realtime Database (`src/lib/firebase.js`).
+De tracker logt **anoniem** in (Firebase Authentication → Anonymous moet aan staan). Alleen de tracker die een code
+start, kan die code wijzigen of verwijderen; kijkers (stream-pagina) kunnen alleen lezen.
+De regels staan in [`docs/firebase-rules.json`](docs/firebase-rules.json) (plakken bij Realtime Database → Rules).
 
 ## Ontwikkelen
 ```bash
