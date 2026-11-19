@@ -47,10 +47,14 @@ export function useLiveSync(classes, goal) {
     return () => clearTimeout(t);
   }, [classes, goal, code, send]);
 
-  // Hartslag
+  // Hartslag: alleen een tijdstip (klein), zodat de stream weet dat de tracker actief is.
+  // Mislukt het, dan wordt de hele stand opnieuw verstuurd.
   useEffect(() => {
     if (!code) return undefined;
-    const t = setInterval(() => send(code), HEARTBEAT_MS);
+    const beat = () => fetch(sessionUrl(code), { method: 'PATCH', body: JSON.stringify({ seenAt: Date.now() }) })
+      .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); setStatus('ok'); setLastOkAt(Date.now()); })
+      .catch(() => send(code));
+    const t = setInterval(beat, HEARTBEAT_MS);
     return () => clearInterval(t);
   }, [code, send]);
 

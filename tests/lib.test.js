@@ -69,3 +69,24 @@ describe('oude browser herkennen', () => {
     expect(detectOldBrowser({ ...modern, supports: () => false })).toBe(true);
   });
 });
+
+import { applyEvent } from '../src/lib/liveFeed.js';
+
+describe('live feed (Firebase streaming)', () => {
+  const start = { classes: [{ name: 'A', laps: 1 }, { name: 'B', laps: 2 }], schoolGoal: 10, seenAt: 1 };
+  it('put op de root vervangt alles', () => {
+    expect(applyEvent(start, 'put', { path: '/', data: { classes: [] } })).toEqual({ classes: [] });
+    expect(applyEvent(start, 'put', { path: '/', data: null })).toBe(null);
+  });
+  it('put op een pad wijzigt één waarde', () => {
+    const r = applyEvent(start, 'put', { path: '/classes/1/laps', data: 5 });
+    expect(r.classes[1].laps).toBe(5);
+    expect(start.classes[1].laps).toBe(2); // origineel ongewijzigd
+  });
+  it('patch voegt samen', () => {
+    expect(applyEvent(start, 'patch', { path: '/', data: { seenAt: 9 } })).toMatchObject({ seenAt: 9, schoolGoal: 10 });
+  });
+  it('verwijderde klas valt uit de lijst', () => {
+    expect(applyEvent(start, 'put', { path: '/classes/0', data: null }).classes).toEqual([{ name: 'B', laps: 2 }]);
+  });
+});

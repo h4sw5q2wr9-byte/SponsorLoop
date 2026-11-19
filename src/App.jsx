@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import BottomNav from './components/BottomNav.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import TrackerPage from './pages/TrackerPage.jsx';
-import ManagePage from './pages/ManagePage.jsx';
+// Beheer (met de grote grafiekbibliotheek) pas laden wanneer nodig: de tracker start sneller.
+const loadManage = () => import('./pages/ManagePage.jsx');
+const ManagePage = lazy(loadManage);
 import { DeleteAllModal, DeleteClassModal, DuplicateNameModal, EditClassModal } from './modals/ClassModals.jsx';
 import { ExportReminderModal, HelpModal, OldBrowserModal, WelcomeModal } from './modals/InfoModals.jsx';
 import { isOldBrowser } from './lib/browser.js';
@@ -17,6 +19,14 @@ import { vibrate } from './lib/haptics.js';
 
 const byName = (a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
 const sameName = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+function PageLoader() {
+  return (
+    <div className="h-full flex items-center justify-center">
+      <div className="w-10 h-10 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
+    </div>
+  );
+}
 
 export default function App() {
   const [tab, setTab] = useState('tracker');
@@ -63,6 +73,12 @@ export default function App() {
       if (isOldBrowser) setOldBrowser(true); // eerst de waarschuwing, daarna de normale pop-up
       else showIntro();
     }, 500);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Beheer alvast op de achtergrond laden als de app rustig is, zodat wisselen direct gaat
+  useEffect(() => {
+    const t = setTimeout(() => { loadManage().catch(() => {}); }, 2500);
     return () => clearTimeout(t);
   }, []);
 
@@ -164,6 +180,7 @@ export default function App() {
             onUndo={() => changeLaps(-1)}
           />
         ) : (
+          <Suspense fallback={<PageLoader />}>
           <ManagePage
             classes={classes}
             sortedClasses={sortedClasses}
@@ -179,6 +196,7 @@ export default function App() {
             onOpenData={() => setDataOpen(true)}
             onToggleTheme={() => { vibrate(10); setTheme((t) => (t === 'light' ? 'dark' : 'light')); }}
           />
+          </Suspense>
         )}
         </ErrorBoundary>
       </main>

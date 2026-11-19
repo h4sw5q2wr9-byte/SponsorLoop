@@ -1,5 +1,5 @@
 import './stream.css';
-import { sessionUrl } from '../lib/firebase.js';
+import { subscribe } from '../lib/liveFeed.js';
 import { standings } from '../lib/standings.js';
 
 
@@ -492,28 +492,27 @@ function render() {
 }
 
 // ---------- data ----------
-var pollT = null, pollId = 0;
-function poll() {
-  clearTimeout(pollT);
-  var id = ++pollId, code = S.code;
-  fetch(sessionUrl(code), { cache: 'no-store' })
-    .then(function (r) { if (!r.ok) throw 0; return r.json(); })
-    .then(function (d) {
-      if (id !== pollId) return;
-      var changed = JSON.stringify(d) !== JSON.stringify(S.data) || S.net !== 'ok';
-      S.data = d; S.net = 'ok';
-      if (!changed) return;
-      if (S.view === 'live') updateLive();
-      else if (S.view === 'preview') render();
-    })
-    .catch(function () { if (id !== pollId) return; if (S.net !== 'error') { S.net = 'error'; if (S.view === 'preview') render(); } })
-    .finally(function () { if (id === pollId && S.view !== 'connect') pollT = setTimeout(poll, 1500); });
+// Live gegevens (Firebase streaming, met automatische terugval)
+var stopFeed = null;
+function startFeed() {
+  if (stopFeed) stopFeed();
+  stopFeed = subscribe(S.code, function (d) {
+    var changed = JSON.stringify(d) !== JSON.stringify(S.data) || S.net !== 'ok';
+    S.data = d; S.net = 'ok';
+    if (!changed) return;
+    if (S.view === 'live') updateLive();
+    else if (S.view === 'preview') render();
+  }, function (status) {
+    if (status === 'error' && S.net !== 'error') { S.net = 'error'; if (S.view === 'preview') render(); }
+    else if (status === 'ok' && S.net !== 'ok') { S.net = 'ok'; if (S.view === 'preview') render(); }
+  });
 }
+function stopFeedNow() { if (stopFeed) { stopFeed(); stopFeed = null; } }
 function connect(code) {
   code = (code || '').trim().toUpperCase();
   if (!/^[A-Z0-9]{4,8}$/.test(code)) { S.error = 'Vul de code van 5 tekens in.'; render(); return; }
   S.code = code; S.error = ''; S.data = null; S.net = 'idle'; S.view = 'preview'; S.anim = true;
-  setUrl(); render(); poll();
+  setUrl(); render(); startFeed();
 }
 function setUrl() {
   var p = new URLSearchParams();
@@ -557,7 +556,7 @@ app.addEventListener('click', function (e) {
     try { localStorage.setItem('sponsorloop_theme', dark ? 'dark' : 'light'); } catch (er) {}
     render();
   }
-  else if (a === 'back') { pollId++; clearTimeout(pollT); S.view = 'connect'; S.data = null; S.anim = true; setUrl(); render(); }
+  else if (a === 'back') { stopFeedNow(); S.view = 'connect'; S.data = null; S.anim = true; setUrl(); render(); }
   else if (a === 'show') startShow();
   else if (a === 'live') startLive();
   else if (a === 'copy') {
@@ -569,6 +568,6 @@ app.addEventListener('click', function (e) {
 setInterval(function () { if (S.view === 'preview' && S.data) render(); }, 15000);
 
 // ---------- start ----------
-if (S.code && S.obs) { startLive(); poll(); }
-else if (S.code) { S.view = 'preview'; render(); poll(); }
+if (S.code && S.obs) { startLive(); startFeed(); }
+else if (S.code) { S.view = 'preview'; render(); startFeed(); }
 else render();
