@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="nl"><head><meta charset="UTF-8"><title>Sponsorloop Live</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="./firebase-config.js"></script>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px;font-family:Inter,system-ui,sans-serif;color:#fff;background:transparent}
+  body.solid{background:#0f172a}
+  .card{max-width:900px;margin:auto;background:rgba(15,23,42,.85);border-radius:20px;padding:24px}
+  h1{margin:0 0 4px;font-size:28px}.sub{opacity:.7;margin-bottom:20px}
+  .row{margin:14px 0}.top{display:flex;justify-content:space-between;font-weight:700;font-size:22px}
+  .bar{height:22px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;margin-top:6px}
+  .fill{height:100%;border-radius:99px;transition:width .6s ease}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;margin-right:8px}.dot.on{background:#22c55e}
+  #enter{text-align:center}#enter input{font:800 32px monospace;text-transform:uppercase;width:210px;text-align:center;padding:10px;border-radius:12px;border:0}
+  #enter button{font:700 18px Inter;padding:12px 20px;border-radius:12px;border:0;background:#4f46e5;color:#fff;margin-left:8px;cursor:pointer}
+</style></head><body>
+<div class="card">
+  <div id="enter"><h1>Voer de code in</h1><p class="sub">Je ziet de code in de tracker onder “Live sync”.</p>
+    <input id="code" maxlength="8" autofocus><button onclick="go()">Start</button></div>
+  <div id="live" style="display:none"><h1>Sponsorloop</h1>
+    <div class="sub"><span class="dot" id="dot"></span><span id="total">Verbinden…</span></div><div id="list"></div></div>
+</div>
+<script>
+var p=new URLSearchParams(location.search);
+if(p.has('solid'))document.body.classList.add('solid');
+var DB=(window.SL_DB_URL||'').replace(/\/$/,''),code;
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function go(){code=document.getElementById('code').value.trim().toUpperCase();if(!code)return;
+  history.replaceState(0,'','?code='+code+(p.has('solid')?'&solid':''));
+  document.getElementById('enter').style.display='none';document.getElementById('live').style.display='block';poll();}
+function render(s){
+  var cl=(s.classes||[]).slice().sort((a,b)=>b.laps-a.laps),total=cl.reduce((a,c)=>a+c.laps,0),max=Math.max(1,...cl.map(c=>c.laps));
+  document.getElementById('total').textContent='Totaal: '+total+' rondes'+(s.schoolGoal?' / doel '+s.schoolGoal+' ('+Math.min(100,Math.round(total/s.schoolGoal*100))+'%)':'');
+  document.getElementById('list').innerHTML=cl.map(c=>'<div class="row"><div class="top"><span>'+esc(c.name)+'</span><span>'+c.laps+'</span></div><div class="bar"><div class="fill" style="width:'+c.laps/max*100+'%;background:'+esc(c.color)+'"></div></div></div>').join('');
+}
+function poll(){
+  fetch(DB+'/sessions/'+code+'.json',{cache:'no-store'}).then(r=>r.json()).then(s=>{
+    document.getElementById('dot').classList.add('on');
+    if(s)render(s);else document.getElementById('total').textContent='Wachten op de tracker… (code '+code+')';
+  }).catch(()=>document.getElementById('dot').classList.remove('on')).finally(()=>setTimeout(poll,1500));
+}
+if(p.get('code')){document.getElementById('code').value=p.get('code');go();}
+</script></body></html>
