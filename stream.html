@@ -38,9 +38,9 @@
     @keyframes zoom-in { 0% { opacity: 0; transform: scale(.85); } 100% { opacity: 1; transform: none; } }
     .zoom-in { animation: zoom-in .9s cubic-bezier(.16,1,.3,1) both; }
     @keyframes rise { 0% { transform: scaleY(0); } 100% { transform: scaleY(1); } }
-    .pillar { transform-origin: bottom; animation: rise 1s cubic-bezier(.16,1,.3,1) both; }
+    .pillar { transform-origin: bottom; animation: rise 1.6s cubic-bezier(.16,1,.3,1) both; }
     @keyframes pop-in { 0% { opacity: 0; transform: translateY(40px) scale(.9); } 100% { opacity: 1; transform: none; } }
-    .pop-in { animation: pop-in .8s cubic-bezier(.175,.885,.32,1.275) both; }
+    .pop-in { animation: pop-in 1s cubic-bezier(.175,.885,.32,1.275) both; }
     .row-hidden { opacity: 0; transform: translateX(-60px); }
     .row-shown { opacity: 1; transform: none; transition: opacity .7s ease, transform .7s cubic-bezier(.16,1,.3,1); }
     .fade-mask { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 6%, #000 88%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 6%, #000 88%, transparent 100%); }
@@ -75,7 +75,8 @@
     data: null, net: 'idle',
     info: false, copied: false, error: '',
     snap: null,                   // vaste stand tijdens de onthulling
-    obs: params.get('view') === 'overview'
+    anim: true,                   // speel de in-animatie alleen bij de eerste weergave
+    obs: params.get('view') === 'overview' || params.get('view') === 'live'
   };
   if (params.get('bg') === 'transparent') document.body.classList.add('transparent');
 
@@ -159,15 +160,26 @@
       '<div class="space-y-3 text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed">' +
       '<p><strong class="text-slate-900 dark:text-white">1. Code ophalen</strong><br>In de tracker: <em>Beheer → Data &amp; Beheer → Live Sync → Start Sync</em>.</p>' +
       '<p><strong class="text-slate-900 dark:text-white">2. Verbinden</strong><br>Vul de code hier in. Je ziet een voorbeeld van wat er binnenkomt.</p>' +
-      '<p><strong class="text-slate-900 dark:text-white">3. Onthulling</strong><br>Druk op <em>Start onthulling</em>. Met ' + kbd('Spatie') + ' ga je steeds een stap verder:<br>intro → top ' + PODIUM + ' → de rest van de stand → eindoverzicht → afsluiten.</p>' +
+      '<p><strong class="text-slate-900 dark:text-white">3a. Live stand</strong><br>De actuele stand op volledig scherm. Werkt vanzelf bij; klassen schuiven naar hun nieuwe plek.</p>' +
+      '<p><strong class="text-slate-900 dark:text-white">3b. Onthulling</strong><br>Voor de bekendmaking van de winnaars. Met ' + kbd('Spatie') + ' ga je steeds een stap verder:<br>intro → top ' + PODIUM + ' → de rest van de stand → eindoverzicht → afsluiten.</p>' +
       '<p>' + kbd('←') + ' een stap terug &nbsp; ' + kbd('Esc') + ' stoppen. Een presenter-klikker werkt ook.</p>' +
-      '<p><strong class="text-slate-900 dark:text-white">OBS</strong><br><em>Kopieer OBS-link</em> geeft een live overzicht met transparante achtergrond voor een Browser-bron.</p>' +
+      '<p><strong class="text-slate-900 dark:text-white">OBS</strong><br><em>Kopieer OBS-link</em> geeft de live stand met transparante achtergrond voor een Browser-bron.</p>' +
       '</div></div></div>';
   }
 
   // ---------- connect / preview ----------
+  function modeBtn(action, icon, title, sub, primary) {
+    var dis = (stats().cl.length ? '' : ' disabled style="opacity:.5;pointer-events:none"');
+    return '<button data-a="' + action + '"' + dis + ' class="group text-left p-5 rounded-[2rem] transition-all active:scale-[.98] ' +
+      (primary ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200 dark:shadow-blue-900/20'
+               : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm') + '">' +
+      '<div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform ' +
+      (primary ? 'bg-white/15' : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400') + '">' + icon + '</div>' +
+      '<div class="text-lg font-black">' + title + '</div>' +
+      '<div class="text-sm font-medium mt-1 ' + (primary ? 'text-blue-100' : 'text-slate-500 dark:text-slate-400') + '">' + sub + '</div></button>';
+  }
   function viewConnect() {
-    return '<main class="max-w-md mx-auto px-4 py-8 animate-slide-up">' + header() +
+    return '<main class="max-w-md mx-auto px-4 py-8' + (S.anim ? ' animate-slide-up' : '') + '">' + header() +
       '<div class="' + C.card + ' p-8">' +
       '<div class="flex justify-center mb-6"><div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-full text-blue-600 dark:text-blue-400 animate-pulse-scale">' + I.radio(32) + '</div></div>' +
       '<h2 class="text-xl font-black text-center text-slate-900 dark:text-white mb-2">Voer de code in</h2>' +
@@ -191,7 +203,7 @@
         '<span class="font-black tabular-nums">' + c.laps + '</span></li>';
     }).join('') : '<li class="py-6 text-center text-sm text-slate-400 font-medium">Nog geen klassen ontvangen</li>';
 
-    return '<main class="max-w-2xl mx-auto px-4 py-8 animate-slide-up">' +
+    return '<main class="max-w-2xl mx-auto px-4 py-8' + (S.anim ? ' animate-slide-up' : '') + '">' +
       header('<button data-a="back" aria-label="Andere code" class="' + C.icon + ' text-slate-500 dark:text-slate-400">' + I.back + '</button>') +
       '<div class="' + C.card + ' p-5 mb-4 flex flex-wrap items-center justify-between gap-3">' +
       '<div class="flex items-center gap-3"><span class="' + C.label + '">Code</span><span class="text-xl font-black tracking-[.3em] text-slate-900 dark:text-white">' + esc(S.code) + '</span></div>' +
@@ -206,11 +218,13 @@
       '</div></div>' +
       '<div class="' + C.card + ' p-5 mb-6"><p class="' + C.label + ' mb-2">Klassen (' + st.cl.length + ')</p>' +
       '<ul class="divide-y divide-slate-100 dark:divide-slate-700 max-h-72 overflow-y-auto no-scrollbar">' + list + '</ul></div>' +
-      '<div class="flex flex-col sm:flex-row gap-3">' +
-      '<button data-a="show" class="' + C.primary + ' flex-1 py-4 text-lg"' + (st.cl.length ? '' : ' disabled style="opacity:.5;pointer-events:none"') + '>' + I.play + ' Start onthulling</button>' +
-      '<button data-a="copy" class="' + C.secondary + ' sm:w-56">' + I.copy + (S.copied ? ' Gekopieerd!' : ' Kopieer OBS-link') + '</button>' +
+      '<p class="' + C.label + ' mb-2 px-1">Kies een weergave</p>' +
+      '<div class="grid sm:grid-cols-2 gap-3 mb-3">' +
+      modeBtn('show', I.trophy(26), 'Onthulling', 'Intro → top ' + PODIUM + ' → de rest → eindstand. Voor de bekendmaking van de winnaars.', true) +
+      modeBtn('live', I.radio(26), 'Live stand', 'De actuele stand, werkt automatisch bij. Voor tijdens het lopen.', false) +
       '</div>' +
-      '<p class="text-center text-xs text-slate-400 font-medium mt-4">Tijdens de onthulling: ' + kbd('Spatie') + ' volgende stap · ' + kbd('←') + ' terug · ' + kbd('Esc') + ' stoppen</p>' +
+      '<button data-a="copy" class="' + C.secondary + ' w-full">' + I.copy + (S.copied ? ' Gekopieerd!' : ' Kopieer OBS-link (live stand)') + '</button>' +
+      '<p class="text-center text-xs text-slate-400 font-medium mt-4 leading-relaxed">Onthulling: ' + kbd('Spatie') + ' volgende stap · ' + kbd('←') + ' terug<br>Beide: ' + kbd('Esc') + ' stoppen</p>' +
       '</main>';
   }
 
@@ -261,13 +275,13 @@
     // volgorde op het podium: 2e, 1e, 3e (1e in het midden)
     var order = top.length >= 3 ? [1, 0, 2] : top.length === 2 ? [1, 0] : [0];
     var heights = { 0: 46, 1: 34, 2: 25 };                 // in vh
-    var delays = top.length >= 3 ? { 2: 0.3, 1: 1.5, 0: 2.9 } : top.length === 2 ? { 1: 0.3, 0: 1.6 } : { 0: 0.4 };
+    var delays = top.length >= 3 ? { 2: 0.8, 1: 3.4, 0: 6.6 } : top.length === 2 ? { 1: 0.8, 0: 3.8 } : { 0: 1 };
     var cols = order.map(function (i) {
       var c = top[i], d = delays[i], mc = MEDAL[Math.min(c.rank - 1, 2)];
       return '<div class="flex flex-col items-center justify-end w-[24vw] max-w-[420px]">' +
-        '<div class="pop-in text-center mb-[2vh]" style="animation-delay:' + (d + .45) + 's">' +
+        '<div class="pop-in text-center mb-[2vh]" style="animation-delay:' + (d + .9) + 's">' +
         '<div class="text-[3.6vh] font-black leading-tight max-w-[24vw] px-2">' + esc(c.name) + '</div>' +
-        '<div class="text-[8vh] font-black tabular-nums leading-none mt-[1vh]" style="color:' + textCol(c.color) + '"><span data-count="' + c.laps + '" data-delay="' + (d + .45) + '">0</span></div>' +
+        '<div class="text-[8vh] font-black tabular-nums leading-none mt-[1vh]" style="color:' + textCol(c.color) + '"><span data-count="' + c.laps + '" data-delay="' + (d + .9) + '">0</span></div>' +
         '<div class="text-[1.6vh] uppercase tracking-widest font-extrabold text-slate-400 mt-[.5vh]">rondes</div>' +
         '</div>' +
         '<div class="pillar relative w-full rounded-t-[2.5vh] shadow-xl overflow-hidden" style="height:' + heights[Math.min(i, 2)] + 'vh;animation-delay:' + d + 's;background:linear-gradient(to bottom,' + c.color + ',' + c.color + 'cc)">' +
@@ -307,72 +321,127 @@
       '</section>';
   }
 
-  // 4) Eindoverzicht met alle klassen
-  function stageOverview(animate) {
-    var st = stats(S.obs ? S.data : S.snap), n = st.cl.length;
+  // 4) Eindoverzicht en Live stand gebruiken hetzelfde bord
+  function layout(n) {
     var cols = n <= 4 ? 2 : n <= 9 ? 3 : n <= 16 ? 4 : n <= 25 ? 5 : 6;
-    var rowsCount = Math.ceil(n / cols) || 1;
-    var cardH = Math.min(18, 66 / rowsCount);              // vh per kaart, zodat alles op één scherm past
-    var big = cardH > 9;
-    var cards = st.cl.map(function (c, i) {
-      var mc = c.rank <= 3 ? MEDAL[c.rank - 1] : null, badge = cardH * .3;
-      return '<div class="' + (animate ? 'pop-in ' : '') + 'relative overflow-hidden rounded-[2vh] bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 shadow-sm flex flex-col justify-between pl-[1.6vw] pr-[1.2vw] py-[1.4vh]" style="height:' + cardH + 'vh;' + (animate ? 'animation-delay:' + (0.15 + i * 0.05) + 's' : '') + '">' +
-        '<div class="absolute left-0 top-0 bottom-0 w-[.7vh]" style="background:' + c.color + '"></div>' +
-        '<div class="flex items-center justify-between gap-2">' +
-        '<span class="shrink-0 rounded-full flex items-center justify-center font-black tabular-nums ' + (mc ? 'text-white' : 'text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700') + '" style="width:' + badge + 'vh;height:' + badge + 'vh;font-size:' + (badge * .48) + 'vh;' + (mc ? 'background:' + mc : '') + '">' + c.rank + '</span>' +
-        '<span class="font-black tabular-nums leading-none" style="font-size:' + (cardH * .3) + 'vh">' + c.laps + '</span></div>' +
-        '<div class="font-bold leading-tight line-clamp-2 break-words" style="font-size:' + Math.max(1.5, cardH * .15) + 'vh">' + esc(c.name) + '</div>' +
-        '<div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden shrink-0" style="height:' + Math.max(.5, cardH * .05) + 'vh"><div class="bar h-full rounded-full" style="width:' + (c.laps / st.max * 100) + '%;background:' + c.color + '"></div></div>' +
-        '</div>';
-    }).join('');
+    return { cols: cols, cardH: Math.min(18, 66 / (Math.ceil(n / cols) || 1)) };
+  }
+  function badgeHtml(c, cardH) {
+    var mc = c.rank <= 3 ? MEDAL[c.rank - 1] : null, size = cardH * .3;
+    return '<span data-r="rank" class="shrink-0 rounded-full flex items-center justify-center font-black tabular-nums transition-colors ' + (mc ? 'text-white' : 'text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700') + '" style="width:' + size + 'vh;height:' + size + 'vh;font-size:' + (size * .48) + 'vh;' + (mc ? 'background:' + mc : '') + '">' + c.rank + '</span>';
+  }
+  function cardHtml(c, st, cardH, animate, i) {
+    return '<div data-name="' + esc(c.name) + '" class="' + (animate ? 'pop-in ' : '') + 'relative overflow-hidden rounded-[2vh] bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 shadow-sm flex flex-col justify-between pl-[1.6vw] pr-[1.2vw] py-[1.4vh]" style="height:' + cardH + 'vh;' + (animate ? 'animation-delay:' + (0.15 + i * 0.05) + 's' : '') + '">' +
+      '<div class="absolute left-0 top-0 bottom-0 w-[.7vh]" style="background:' + c.color + '"></div>' +
+      '<div class="flex items-center justify-between gap-2">' + badgeHtml(c, cardH) +
+      '<span data-r="laps" class="font-black tabular-nums leading-none" style="font-size:' + (cardH * .3) + 'vh">' + c.laps + '</span></div>' +
+      '<div class="font-bold leading-tight line-clamp-2 break-words" style="font-size:' + Math.max(1.5, cardH * .15) + 'vh">' + esc(c.name) + '</div>' +
+      '<div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden shrink-0" style="height:' + Math.max(.5, cardH * .05) + 'vh"><div data-r="bar" class="bar h-full rounded-full" style="width:' + (c.laps / st.max * 100) + '%;background:' + c.color + '"></div></div>' +
+      '</div>';
+  }
+  function boardHtml(st, live, animate) {
+    var L = layout(st.cl.length);
+    var cards = st.cl.map(function (c, i) { return cardHtml(c, st, L.cardH, animate, i); }).join('');
     return '<section class="relative h-[100dvh] overflow-hidden flex flex-col px-[4vw] py-[4vh]">' +
       '<div class="flex items-end justify-between gap-[3vw] mb-[3vh] ' + (animate ? 'animate-slide-up' : '') + '">' +
       '<div><p class="uppercase tracking-[.35em] font-extrabold text-[1.8vh] text-blue-600 dark:text-blue-400 flex items-center gap-2">' +
-      (S.obs ? '<span class="w-[1vh] h-[1vh] rounded-full bg-red-500 animate-pulse"></span>Live stand' : 'Eindstand') + '</p>' +
+      (live ? '<span class="w-[1vh] h-[1vh] rounded-full bg-red-500 animate-pulse"></span>Live stand' : 'Eindstand') + '</p>' +
       '<h2 class="text-[6vh] font-black text-slate-900 dark:text-white leading-tight">Sponsorloop</h2></div>' +
       '<div class="flex items-end gap-[3vw]">' +
-      (st.goal ? '<div class="w-[22vw]"><div class="flex justify-between text-[1.8vh] font-bold text-slate-500 dark:text-slate-400 mb-[.8vh]"><span>School doel ' + st.goal + '</span><span class="tabular-nums">' + st.pct + '%</span></div>' +
-        '<div class="w-full bg-slate-200/70 dark:bg-slate-700/70 h-[1.6vh] rounded-full overflow-hidden"><div class="bar h-full bg-blue-500 rounded-full" style="width:' + st.pct + '%"></div></div></div>' : '') +
-      '<div class="text-right"><p class="uppercase tracking-widest font-extrabold text-[1.5vh] text-slate-400">Totaal rondes</p><p class="text-[8vh] font-black tabular-nums text-blue-600 dark:text-blue-400 leading-none">' + st.total + '</p></div>' +
+      (st.goal ? '<div class="w-[22vw]"><div class="flex justify-between text-[1.8vh] font-bold text-slate-500 dark:text-slate-400 mb-[.8vh]"><span>School doel ' + st.goal + '</span><span id="bdPct" class="tabular-nums">' + st.pct + '%</span></div>' +
+        '<div class="w-full bg-slate-200/70 dark:bg-slate-700/70 h-[1.6vh] rounded-full overflow-hidden"><div id="bdGoal" class="bar h-full bg-blue-500 rounded-full" style="width:' + st.pct + '%"></div></div></div>' : '') +
+      '<div class="text-right"><p class="uppercase tracking-widest font-extrabold text-[1.5vh] text-slate-400">Totaal rondes</p><p id="bdTotal" class="text-[8vh] font-black tabular-nums text-blue-600 dark:text-blue-400 leading-none">' + st.total + '</p></div>' +
       '</div></div>' +
-      '<div class="flex-1 grid content-center gap-[1.6vh] gap-x-[1.4vw]" style="grid-template-columns:repeat(' + cols + ',minmax(0,1fr))">' + cards + '</div>' +
+      '<div id="bdGrid" data-cols="' + L.cols + '" data-goal="' + (st.goal || '') + '" class="flex-1 grid content-center gap-[1.6vh] gap-x-[1.4vw]" style="grid-template-columns:repeat(' + L.cols + ',minmax(0,1fr))">' + cards + '</div>' +
       (S.obs ? '' : '<div class="flex items-center justify-between mt-[2vh] text-[1.6vh] font-medium text-slate-400 dark:text-slate-500">' +
         '<span>Sponsorloop Tracker door <span class="font-bold text-slate-500 dark:text-slate-400">' + esc(CREDIT) + '</span></span>' +
-        '<span class="hint inline-flex items-center gap-2 font-bold">' + key('Spatie') + ' afsluiten</span></div>') +
+        '<span class="hint inline-flex items-center gap-2 font-bold">' + key(live ? 'Esc' : 'Spatie') + ' afsluiten</span></div>') +
       '</section>';
+  }
+  function stageOverview(animate) { return boardHtml(stats(S.snap), false, animate); }
+
+  // ---------- Live stand ----------
+  function renderLive(animate) {
+    clearTimers();
+    app.innerHTML = boardHtml(stats(S.data), true, animate);
+  }
+  function bumpEl(el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+  // Werk het bord bij zonder opnieuw te animeren; klassen die van plek wisselen schuiven soepel
+  function updateLive() {
+    var st = stats(S.data), grid = document.getElementById('bdGrid');
+    if (!grid) return renderLive(false);
+    var cards = {}; Array.prototype.forEach.call(grid.children, function (el) { cards[el.getAttribute('data-name')] = el; });
+    var L = layout(st.cl.length);
+    var same = grid.children.length === st.cl.length && st.cl.every(function (c) { return cards[esc(c.name)] || cards[c.name]; }) &&
+      +grid.getAttribute('data-cols') === L.cols && grid.getAttribute('data-goal') === String(st.goal || '');
+    if (!same) return renderLive(false);
+
+    Array.prototype.forEach.call(grid.querySelectorAll('.pop-in'), function (el) { el.classList.remove('pop-in'); el.style.animationDelay = ''; });
+    var hdr = app.querySelector('.animate-slide-up'); if (hdr) hdr.classList.remove('animate-slide-up');
+    var first = {}; st.cl.forEach(function (c) { first[c.name] = cards[c.name].getBoundingClientRect(); });
+    st.cl.forEach(function (c) {
+      var el = cards[c.name], lapsEl = el.querySelector('[data-r="laps"]');
+      if (lapsEl.textContent !== String(c.laps)) {
+        var up = c.laps > +lapsEl.textContent;
+        lapsEl.textContent = c.laps; if (up) bumpEl(lapsEl);
+      }
+      el.querySelector('[data-r="bar"]').style.width = (c.laps / st.max * 100) + '%';
+      var rk = el.querySelector('[data-r="rank"]');
+      if (rk.textContent !== String(c.rank)) rk.outerHTML = badgeHtml(c, L.cardH);
+      grid.appendChild(el);                                  // juiste volgorde
+    });
+    st.cl.forEach(function (c) {                             // FLIP-animatie voor verschoven kaarten
+      var el = cards[c.name], r = el.getBoundingClientRect(), f = first[c.name];
+      var dx = f.left - r.left, dy = f.top - r.top;
+      if (!dx && !dy) return;
+      el.style.transition = 'none'; el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; el.style.zIndex = 2;
+      void el.offsetWidth;
+      el.style.transition = 'transform .9s cubic-bezier(.16,1,.3,1)'; el.style.transform = '';
+      setTimeout(function () { el.style.zIndex = ''; }, 900);
+    });
+    var tot = document.getElementById('bdTotal');
+    if (tot && tot.textContent !== String(st.total)) { tot.textContent = st.total; bumpEl(tot); }
+    var g = document.getElementById('bdGoal'); if (g) g.style.width = st.pct + '%';
+    var pc = document.getElementById('bdPct'); if (pc) pc.textContent = st.pct + '%';
+  }
+  function startLive() {
+    S.view = 'live';
+    document.body.classList.add('show');
+    var el = document.documentElement;
+    if (!S.obs && el.requestFullscreen && !document.fullscreenElement) el.requestFullscreen().catch(function () {});
+    renderLive(true);
   }
 
   function renderShow(animate) {
     clearTimers();
     var html = S.stage === 'intro' ? stageIntro() : S.stage === 'podium' ? stagePodium() : S.stage === 'scroll' ? stageScroll() : stageOverview(animate !== false);
-    app.innerHTML = html + (S.obs ? '' : '<button id="exitFs" data-a="exit" aria-label="Stoppen" class="fixed top-4 right-4 z-40 opacity-0 transition-opacity ' + C.icon + ' text-slate-500">' + I.x + '</button>');
+    app.innerHTML = html + ('<button id="exitFs" data-a="exit" aria-label="Stoppen" class="fixed top-4 right-4 z-40 opacity-0 transition-opacity ' + C.icon + ' text-slate-500">' + I.x + '</button>');
     if (S.stage === 'podium') startPodium();
     if (S.stage === 'scroll') startScroll();
   }
 
   function startPodium() {
-    var nums = app.querySelectorAll('[data-count]');
-    nums.forEach(function (el) {
+    var COUNT = 2600, last = 0;
+    app.querySelectorAll('[data-count]').forEach(function (el) {
       var d = parseFloat(el.getAttribute('data-delay')) * 1000;
-      later(function () { countUp(el, +el.getAttribute('data-count'), 1400); }, d);
+      last = Math.max(last, d);
+      later(function () { countUp(el, +el.getAttribute('data-count'), COUNT); }, d);
     });
-    var st = stats(S.snap);
-    var firstDelay = st.cl.length >= 3 ? 2900 : st.cl.length === 2 ? 1600 : 400;
-    later(function () { confetti(); }, firstDelay + 900);
+    later(function () { confetti(); }, last + COUNT);        // confetti zodra de winnaar is uitgeteld
   }
 
   function startScroll() {
     var rows = Array.prototype.slice.call(app.querySelectorAll('.srow'));
     var sc = document.getElementById('scroller');
     if (!rows.length) { go('overview'); return; }
-    var gap = Math.max(550, Math.min(1100, 22000 / rows.length));     // ms tussen klassen
+    var gap = Math.max(900, Math.min(1600, 30000 / rows.length));     // ms tussen klassen
     rows.forEach(function (r, i) {
       later(function () {
         r.classList.remove('row-hidden'); r.classList.add('row-shown');
         var b = r.querySelector('.bar'); later(function () { b.style.width = b.getAttribute('data-w') + '%'; }, 150);
         var target = r.offsetTop + r.offsetHeight - sc.clientHeight * 0.7;
         if (target > sc.scrollTop) smoothScroll(sc, target, gap * 0.9);
-        if (i === rows.length - 1) later(function () { go('overview'); }, 2600);
+        if (i === rows.length - 1) later(function () { go('overview'); }, 3500);
       }, 500 + i * gap);
     });
   }
@@ -417,7 +486,7 @@
     clearTimers(); busy = false;
     document.body.classList.remove('show'); document.body.style.cursor = '';
     if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
-    S.view = 'preview'; render();
+    S.view = 'preview'; S.anim = true; render();
   }
 
   // Confetti voor de winnaar
@@ -449,9 +518,10 @@
 
   // ---------- render ----------
   function render() {
-    if (S.view === 'show') return;
+    if (S.view === 'show' || S.view === 'live') return;
     var focusCode = document.activeElement && document.activeElement.id === 'codeIn';
     app.innerHTML = (S.view === 'connect' ? viewConnect() : viewPreview()) + infoModal();
+    S.anim = false;
     if (S.view === 'connect') { var inp = document.getElementById('codeIn'); if (inp && (focusCode || !S.info)) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } }
     var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.setAttribute('content', isDark() ? '#0f172a' : '#f8fafc');
   }
@@ -468,7 +538,7 @@
         var changed = JSON.stringify(d) !== JSON.stringify(S.data) || S.net !== 'ok';
         S.data = d; S.net = 'ok';
         if (!changed) return;
-        if (S.obs) renderShow(false);           // OBS: live overzicht
+        if (S.view === 'live') updateLive();
         else if (S.view === 'preview') render();
       })
       .catch(function () { if (id !== pollId) return; if (S.net !== 'error') { S.net = 'error'; if (S.view === 'preview') render(); } })
@@ -477,13 +547,13 @@
   function connect(code) {
     code = (code || '').trim().toUpperCase();
     if (!/^[A-Z0-9]{4,8}$/.test(code)) { S.error = 'Vul de code van 5 tekens in.'; render(); return; }
-    S.code = code; S.error = ''; S.data = null; S.net = 'idle'; S.view = 'preview';
+    S.code = code; S.error = ''; S.data = null; S.net = 'idle'; S.view = 'preview'; S.anim = true;
     setUrl(); render(); poll();
   }
   function setUrl() {
     var p = new URLSearchParams();
     if (S.code && S.view !== 'connect') p.set('code', S.code);
-    if (S.obs) p.set('view', 'overview');
+    if (S.obs) p.set('view', 'live');
     if (params.get('bg')) p.set('bg', params.get('bg'));
     history.replaceState(null, '', location.pathname + (p.toString() ? '?' + p : ''));
   }
@@ -495,9 +565,10 @@
     b.style.opacity = '1'; document.body.style.cursor = '';
     clearTimeout(hideT); hideT = setTimeout(function () { b.style.opacity = '0'; if (S.view === 'show') document.body.style.cursor = 'none'; }, 2000);
   });
-  document.addEventListener('fullscreenchange', function () { if (!document.fullscreenElement && S.view === 'show' && !S.obs) exitShow(); });
+  document.addEventListener('fullscreenchange', function () { if (!document.fullscreenElement && (S.view === 'show' || S.view === 'live') && !S.obs) exitShow(); });
   document.addEventListener('keydown', function (e) {
-    if (S.view === 'show' && !S.obs) {
+    if (S.view === 'live' && !S.obs) { if (e.key === 'Escape') exitShow(); return; }
+    if (S.view === 'show') {
       if ([' ', 'Enter', 'ArrowRight', 'ArrowDown', 'PageDown'].indexOf(e.key) >= 0) { e.preventDefault(); next(); }
       else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].indexOf(e.key) >= 0) { e.preventDefault(); prev(); }
       else if (e.key === 'Escape') exitShow();
@@ -510,7 +581,8 @@
   app.addEventListener('input', function (e) { if (e.target.id === 'codeIn') { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); S.code = e.target.value; } });
   app.addEventListener('click', function (e) {
     var t = e.target.closest('[data-a]');
-    if (S.view === 'show' && !S.obs) { if (t && t.getAttribute('data-a') === 'exit') exitShow(); else next(); return; }
+    if (S.view === 'live') return;
+    if (S.view === 'show') { if (t && t.getAttribute('data-a') === 'exit') exitShow(); else next(); return; }
     if (!t) return;
     var a = t.getAttribute('data-a');
     if (a === 'info-bg' && t !== e.target) return;
@@ -520,10 +592,11 @@
       try { localStorage.setItem('sponsorloop_theme', dark ? 'dark' : 'light'); } catch (er) {}
       render();
     }
-    else if (a === 'back') { pollId++; clearTimeout(pollT); S.view = 'connect'; S.data = null; setUrl(); render(); }
+    else if (a === 'back') { pollId++; clearTimeout(pollT); S.view = 'connect'; S.data = null; S.anim = true; setUrl(); render(); }
     else if (a === 'show') startShow();
+    else if (a === 'live') startLive();
     else if (a === 'copy') {
-      var url = location.origin + location.pathname + '?code=' + S.code + '&view=overview&bg=transparent';
+      var url = location.origin + location.pathname + '?code=' + S.code + '&view=live&bg=transparent';
       (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).catch(function () { prompt('Kopieer deze link:', url); });
       S.copied = true; render(); setTimeout(function () { S.copied = false; if (S.view === 'preview') render(); }, 1500);
     }
@@ -531,7 +604,7 @@
   setInterval(function () { if (S.view === 'preview' && S.data) render(); }, 15000);
 
   // ---------- start ----------
-  if (S.code && S.obs) { S.view = 'show'; S.stage = 'overview'; document.body.classList.add('show'); renderShow(false); poll(); }
+  if (S.code && S.obs) { startLive(); poll(); }
   else if (S.code) { S.view = 'preview'; render(); poll(); }
   else render();
 })();

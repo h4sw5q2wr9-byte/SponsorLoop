@@ -11,7 +11,9 @@
     del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
   };
 
-  var code = ls.get('sponsorloop_live_code');
+  // Sync staat altijd UIT bij het openen; de vorige code wordt alleen onthouden om te kunnen hervatten.
+  var code = null;
+  var prevCode = ls.get('sponsorloop_live_code');
   var last = null;          // laatste stand uit de app
   var status = 'idle';      // idle | sending | ok | error
   var lastOkAt = 0, timer = null, beat = null, open = false, showInfo = false, copied = false;
@@ -48,9 +50,9 @@
   window.sponsorloopCode = function () { return code; };
   window.sponsorloopOpenSync = function () { open = true; showInfo = false; render(); };
 
-  function start() { code = newCode(); ls.set('sponsorloop_live_code', code); status = 'sending'; startBeat(); send(); }
+  function start(reuse) { code = reuse && prevCode ? prevCode : newCode(); prevCode = code; ls.set('sponsorloop_live_code', code); status = 'sending'; startBeat(); send(); }
   function stop() {
-    var old = code; code = null; status = 'idle'; ls.del('sponsorloop_live_code'); stopBeat();
+    var old = code; code = null; prevCode = null; status = 'idle'; ls.del('sponsorloop_live_code'); stopBeat();
     if (old) fetch(DB + '/sessions/' + old + '.json', { method: 'DELETE' }).catch(function () {});
   }
   // Hartslag: elke 15 s, zodat de stream-pagina weet dat de tracker nog online is.
@@ -106,7 +108,10 @@
           '<div class="flex justify-center mb-5"><div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-full text-blue-600 dark:text-blue-400 animate-pulse-scale">' + I.radio(28) + '</div></div>' +
           '<p class="text-slate-500 dark:text-slate-400 text-center mb-6 font-medium">Laat de stand live meekijken op een andere PC, bijvoorbeeld voor een livestream.</p>' +
           '<div class="flex flex-col gap-3">' +
-          '<button data-a="start" class="' + C.primary + '">' + I.radio(18) + ' Start Sync</button>' +
+          (prevCode
+            ? '<button data-a="resume" class="' + C.primary + '">' + I.radio(18) + ' Hervat met code ' + prevCode + '</button>' +
+              '<button data-a="start" class="' + C.secondary + '">Start met nieuwe code</button>'
+            : '<button data-a="start" class="' + C.primary + '">' + I.radio(18) + ' Start Sync</button>') +
           '<a href="' + streamUrl() + '" target="_blank" rel="noopener" class="' + C.secondary + '">' + I.ext + ' Naar stream-pagina</a>' +
           '</div>';
       } else {
@@ -149,7 +154,8 @@
     if (navigator.vibrate) navigator.vibrate(10);
     if (a === 'close' || a === 'close-bg') open = false;
     else if (a === 'info') showInfo = !showInfo;
-    else if (a === 'start') start();
+    else if (a === 'start') start(false);
+    else if (a === 'resume') start(true);
     else if (a === 'stop') stop();
     else if (a === 'copy') {
       var url = streamUrl(code);
@@ -161,7 +167,6 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     document.body.appendChild(root);
-    if (code) startBeat();
     render();
   });
 })();

@@ -14,5 +14,6 @@ Deze repo is al klaar: Settings → Pages → Deploy from branch → `main` / ro
 
 ## Gebruik
 - Tracker: **Beheer → Data & Beheer (icoon) → Live Sync → Start Sync** geeft een code.
-- Andere PC: open `stream.html`, voer de code in en druk op **Start onthulling**. Met Spatie: intro → top 3 → rest van de stand → eindoverzicht → afsluiten. (← terug, Esc stoppen)
-- OBS: **Kopieer OBS-link** geeft een live eindoverzicht met transparante achtergrond (Browser-bron).
+- Andere PC: open `stream.html`, voer de code in en kies **Live stand** (actuele stand, werkt vanzelf bij) of **Onthulling** (intro → top 3 → rest → eindstand, met Spatie). Esc = stoppen.
+- OBS: **Kopieer OBS-link** geeft de live stand met transparante achtergrond (Browser-bron).
+- Live Sync staat bij het openen van de tracker altijd uit; je kunt hervatten met dezelfde code.
