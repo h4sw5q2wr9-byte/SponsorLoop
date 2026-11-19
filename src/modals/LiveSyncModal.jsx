@@ -12,6 +12,7 @@ const STATUS = {
   ok: ['bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400', 'bg-green-500 animate-pulse', 'Live'],
   sending: ['bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400', 'bg-blue-500 animate-pulse', 'Verbinden'],
   error: ['bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400', 'bg-red-500', 'Geen verbinding'],
+  denied: ['bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300', 'bg-orange-500', 'Andere tracker'],
   idle: ['bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400', 'bg-slate-400', 'Uit'],
 };
 
@@ -78,7 +79,7 @@ export default function LiveSyncModal({ open, onClose, sync }) {
             ))}
           </div>
           <p className="text-xs text-center text-slate-400 dark:text-slate-500 font-medium mb-6">
-            {status === 'error' ? 'Geen verbinding, opnieuw proberen…' : `Laatste update: ${lastOkAt ? new Date(lastOkAt).toLocaleTimeString('nl-NL') : '—'}`}
+            {status === 'denied' ? 'Deze code hoort bij een ander apparaat. Stop en kies een nieuwe code.' : status === 'error' ? 'Geen verbinding, opnieuw proberen…' : `Laatste update: ${lastOkAt ? new Date(lastOkAt).toLocaleTimeString('nl-NL') : '—'}`}
           </p>
           <div className="flex flex-col gap-3">
             <a href={streamUrl(code)} target="_blank" rel="noopener noreferrer" className={C.primary}><ExternalLink size={18} /> Stream-pagina</a>

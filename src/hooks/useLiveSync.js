@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { newCode, sessionUrl } from '../lib/firebase.js';
+import { getAuth } from '../lib/firebaseAuth.js';
 import { KEYS, read, write } from '../lib/storage.js';
 
 const HEARTBEAT_MS = 15000; // stream-pagina ziet zo dat de tracker nog actief is
@@ -12,7 +13,7 @@ const RETRY_MS = 3000;
 export function useLiveSync(classes, goal) {
   const [code, setCode] = useState(null);
   const [prevCode, setPrevCode] = useState(() => read(KEYS.liveCode));
-  const [status, setStatus] = useState('idle'); // idle | sending | ok | error
+  const [status, setStatus] = useState('idle'); // idle | sending | ok | error | denied
   const [lastOkAt, setLastOkAt] = useState(0);
   const latest = useRef({ classes, goal });
   const retry = useRef(null);
@@ -30,7 +31,10 @@ export function useLiveSync(classes, goal) {
       seenAt: Date.now(),
     };
     try {
-      const res = await fetch(sessionUrl(target), { method: 'PUT', body: JSON.stringify(body) });
+      const auth = await getAuth(); // null als inloggen uit staat
+      if (auth) body.owner = auth.uid;
+      const res = await fetch(sessionUrl(target, auth && auth.token), { method: 'PUT', body: JSON.stringify(body) });
+      if (res.status === 401 && auth) { setStatus('denied'); return; } // code is van een ander apparaat
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setStatus('ok');
       setLastOkAt(Date.now());
@@ -51,7 +55,8 @@ export function useLiveSync(classes, goal) {
   // Mislukt het, dan wordt de hele stand opnieuw verstuurd.
   useEffect(() => {
     if (!code) return undefined;
-    const beat = () => fetch(sessionUrl(code), { method: 'PATCH', body: JSON.stringify({ seenAt: Date.now() }) })
+    const beat = () => getAuth()
+      .then((auth) => fetch(sessionUrl(code, auth && auth.token), { method: 'PATCH', body: JSON.stringify({ seenAt: Date.now() }) }))
       .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); setStatus('ok'); setLastOkAt(Date.now()); })
       .catch(() => send(code));
     const t = setInterval(beat, HEARTBEAT_MS);
@@ -68,7 +73,7 @@ export function useLiveSync(classes, goal) {
 
   const stop = useCallback(() => {
     clearTimeout(retry.current);
-    if (code) fetch(sessionUrl(code), { method: 'DELETE' }).catch(() => {});
+    if (code) getAuth().then((auth) => fetch(sessionUrl(code, auth && auth.token), { method: 'DELETE' })).catch(() => {});
     write(KEYS.liveCode, null);
     setPrevCode(null);
     setCode(null);
