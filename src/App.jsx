@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import BottomNav from './components/BottomNav.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 import TrackerPage from './pages/TrackerPage.jsx';
 import ManagePage from './pages/ManagePage.jsx';
 import { DeleteAllModal, DeleteClassModal, DuplicateNameModal, EditClassModal } from './modals/ClassModals.jsx';
@@ -145,6 +146,7 @@ export default function App() {
   return (
     <>
       <main className="flex-1 overflow-y-auto relative w-full overscroll-contain no-scrollbar">
+        <ErrorBoundary key={tab}>
         {tab === 'tracker' ? (
           <TrackerPage
             classes={classes}
@@ -172,6 +174,7 @@ export default function App() {
             onToggleTheme={() => { vibrate(10); setTheme((t) => (t === 'light' ? 'dark' : 'light')); }}
           />
         )}
+        </ErrorBoundary>
       </main>
 
       <BottomNav tab={tab} onChange={switchTab} />

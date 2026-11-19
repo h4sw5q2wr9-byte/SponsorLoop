@@ -3,6 +3,24 @@ import { sessionUrl } from '../lib/firebase.js';
 import { standings } from '../lib/standings.js';
 
 
+// Volledig scherm, ook voor oudere browsers (webkit-varianten, bijv. Samsung-tv)
+function fsElement() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
+function enterFullscreen() {
+  var el = document.documentElement;
+  if (fsElement()) return;
+  try {
+    var r = el.requestFullscreen ? el.requestFullscreen() : el.webkitRequestFullscreen ? el.webkitRequestFullscreen() : null;
+    if (r && r.catch) r.catch(function () {});
+  } catch (e) { /* niet ondersteund: gewoon in het venster tonen */ }
+}
+function leaveFullscreen() {
+  if (!fsElement()) return;
+  try {
+    var r = document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen ? document.webkitExitFullscreen() : null;
+    if (r && r.catch) r.catch(function () {});
+  } catch (e) { /* negeren */ }
+}
+
 // ===== Instellingen =====
 var CREDIT = 'Tijn van Kemenade';       // naam op het intro-scherm
 var PODIUM = 3;                         // aantal klassen in de eerste onthulling
@@ -343,7 +361,7 @@ function startLive() {
   S.view = 'live';
   document.body.classList.add('show');
   var el = document.documentElement;
-  if (!S.obs && el.requestFullscreen && !document.fullscreenElement) el.requestFullscreen().catch(function () {});
+  if (!S.obs) enterFullscreen();
   renderLive(true);
 }
 
@@ -426,13 +444,13 @@ function startShow() {
   S.view = 'show'; S.stage = 'intro';
   document.body.classList.add('show');
   var el = document.documentElement;
-  if (el.requestFullscreen && !document.fullscreenElement) el.requestFullscreen().catch(function () {});
+  enterFullscreen();
   renderShow();
 }
 function exitShow() {
   clearTimers(); busy = false;
   document.body.classList.remove('show', 'ui'); document.body.style.cursor = '';
-  if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+  leaveFullscreen();
   S.view = 'preview'; S.anim = true; render();
 }
 
@@ -507,7 +525,9 @@ function setUrl() {
 
 // ---------- invoer ----------
 ['mousemove', 'touchstart', 'pointerdown'].forEach(function (ev) { document.addEventListener(ev, showUI, { passive: true }); });
-document.addEventListener('fullscreenchange', function () { if (!document.fullscreenElement && (S.view === 'show' || S.view === 'live') && !S.obs) exitShow(); });
+function onFsChange() { if (!fsElement() && (S.view === 'show' || S.view === 'live') && !S.obs) exitShow(); }
+document.addEventListener('fullscreenchange', onFsChange);
+document.addEventListener('webkitfullscreenchange', onFsChange);
 document.addEventListener('keydown', function (e) {
   if (S.view === 'live' && !S.obs) { if (e.key === 'Escape') exitShow(); return; }
   if (S.view === 'show') {
