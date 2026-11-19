@@ -7,7 +7,7 @@ export const DB_URL = 'https://sponsorloop-1eb58-default-rtdb.europe-west1.fireb
  * Ingevuld = de tracker logt anoniem in en alleen díe tracker kan zijn code wijzigen.
  * Deze sleutel is niet geheim; de beveiliging zit in de Firebase-regels.
  */
-export const FIREBASE_API_KEY = '';
+export const FIREBASE_API_KEY = 'AIzaSyAUq-908lMPzZnfE2f57k6Ae3A9Y3wnxHA';
 
 export const sessionUrl = (code, token) =>
   `${DB_URL}/sessions/${encodeURIComponent(code)}.json${token ? `?auth=${encodeURIComponent(token)}` : ''}`;

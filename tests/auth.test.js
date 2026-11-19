@@ -4,6 +4,7 @@ describe('anoniem inloggen (Firebase)', () => {
   afterEach(() => { vi.resetModules(); vi.unstubAllGlobals(); vi.doUnmock('../src/lib/firebase.js'); });
 
   it('staat uit zonder API key', async () => {
+    vi.doMock('../src/lib/firebase.js', () => ({ FIREBASE_API_KEY: '' }));
     const { getAuth, authEnabled } = await import('../src/lib/firebaseAuth.js');
     expect(authEnabled()).toBe(false);
     expect(await getAuth()).toBe(null);
