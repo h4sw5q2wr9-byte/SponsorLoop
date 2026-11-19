@@ -15,7 +15,7 @@
     })();
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script src="./firebase-config.js?v=3"></script>
+  <script src="./firebase-config.js?v=5"></script>
   <style>
     body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; background: #f8fafc; }
     .dark body { background: #0f172a; }
@@ -47,8 +47,10 @@
     @keyframes hint { 0%,100% { opacity: .45; } 50% { opacity: 1; } }
     .hint { animation: hint 2.2s ease-in-out infinite; }
     /* tijdens de show: geen knoppen, hints of muiscursor in beeld */
-    body.show .hint, body.show #exitFs { display: none !important; }
-    body.show, body.show * { cursor: none !important; }
+    body.show .hint { display: none !important; }
+    body.show #exitFs { opacity: 0; pointer-events: none; transition: opacity .3s; }
+    body.show.ui #exitFs { opacity: 1; pointer-events: auto; }
+    body.show:not(.ui), body.show:not(.ui) * { cursor: none !important; }
     .stage-out { opacity: 0; transform: scale(.97); transition: opacity .35s ease, transform .35s ease; }
     kbd { font-family: inherit; }
   </style>
@@ -131,10 +133,10 @@
 
   function chip() {
     var st = stats(), m;
-    if (S.net === 'error') m = ['bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400', 'bg-red-500', 'Geen internet'];
-    else if (!S.data) m = ['bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400', 'bg-amber-500 animate-pulse', 'Wachten op tracker…'];
+    if (S.net === 'error') m = ['bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400', 'bg-red-500', 'Geen verbinding'];
+    else if (!S.data) m = ['bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400', 'bg-amber-500 animate-pulse', 'Wachten op gegevens'];
     else if (st.online) m = ['bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400', 'bg-green-500 animate-pulse', 'Live'];
-    else m = ['bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400', 'bg-slate-400', 'Tracker offline'];
+    else m = ['bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400', 'bg-slate-400', 'Tracker niet actief'];
     return '<span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ' + m[0] + '"><span class="w-2 h-2 rounded-full ' + m[1] + '"></span>' + m[2] + '</span>';
   }
 
@@ -142,7 +144,7 @@
     return '<header class="flex items-center justify-between gap-3 mb-6">' +
       '<div class="flex items-center gap-3 min-w-0">' + (extra || '') +
       '<div class="min-w-0"><h1 class="text-2xl font-black text-slate-900 dark:text-white leading-tight truncate">Sponsorloop Live</h1>' +
-      '<p class="text-sm font-medium text-slate-400 dark:text-slate-500">Stream-weergave</p></div></div>' +
+      '<p class="text-sm font-medium text-slate-400 dark:text-slate-500">Weergave voor scherm en livestream</p></div></div>' +
       '<div class="flex gap-2 shrink-0">' +
       '<button data-a="info" aria-label="Uitleg" class="' + C.icon + '">' + I.info + '</button>' +
       '<button data-a="theme" aria-label="Thema wisselen" class="' + C.icon + '">' + (isDark() ? I.sun : I.moon) + '</button>' +
@@ -155,15 +157,14 @@
     if (!S.info) return '';
     return '<div data-a="info-bg" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-md">' +
       '<div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur w-full max-w-sm rounded-[2rem] shadow-2xl p-6 border border-white dark:border-slate-700 max-h-[90vh] overflow-y-auto no-scrollbar">' +
-      '<div class="flex justify-between items-center mb-5"><h3 class="text-xl font-black text-slate-900 dark:text-white">Uitleg</h3>' +
+      '<div class="flex justify-between items-center mb-5"><h3 class="text-xl font-black text-slate-900 dark:text-white">Werkwijze</h3>' +
       '<button data-a="info" class="text-slate-400 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">' + I.x + '</button></div>' +
       '<div class="space-y-3 text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed">' +
-      '<p><strong class="text-slate-900 dark:text-white">1. Code ophalen</strong><br>In de tracker: <em>Beheer → Data &amp; Beheer → Live Sync → Start Sync</em>.</p>' +
-      '<p><strong class="text-slate-900 dark:text-white">2. Verbinden</strong><br>Vul de code hier in. Je ziet een voorbeeld van wat er binnenkomt.</p>' +
-      '<p><strong class="text-slate-900 dark:text-white">3a. Live stand</strong><br>De actuele stand op volledig scherm. Werkt vanzelf bij; klassen schuiven naar hun nieuwe plek.</p>' +
-      '<p><strong class="text-slate-900 dark:text-white">3b. Onthulling</strong><br>Voor de bekendmaking van de winnaars. Met ' + kbd('Spatie') + ' ga je steeds een stap verder:<br>intro → top ' + PODIUM + ' → de rest van de stand → eindoverzicht → afsluiten.</p>' +
-      '<p>' + kbd('←') + ' een stap terug &nbsp; ' + kbd('Esc') + ' stoppen. Een presenter-klikker werkt ook.</p>' +
-      '<p><strong class="text-slate-900 dark:text-white">OBS</strong><br><em>Kopieer OBS-link</em> geeft de live stand met transparante achtergrond voor een Browser-bron.</p>' +
+      '<p><strong class="text-slate-900 dark:text-white">1. Live Sync starten</strong><br>Open in de tracker <em>Data &amp; Beheer</em> en kies <em>Live Sync</em>. Na het starten verschijnt een code van vijf tekens.</p>' +
+      '<p><strong class="text-slate-900 dark:text-white">2. Verbinden</strong><br>Voer de code op deze pagina in. Het overzicht toont de ontvangen gegevens.</p>' +
+      '<p><strong class="text-slate-900 dark:text-white">3. Weergave kiezen</strong><br><em>Live stand</em> toont de tussenstand tijdens de sponsorloop. <em>Onthulling</em> presenteert de einduitslag; na de start met ' + kbd('Spatie') + ' of een klik verloopt de presentatie automatisch.</p>' +
+      '<p><strong class="text-slate-900 dark:text-white">Afsluiten</strong><br>Druk op ' + kbd('Esc') + ' of gebruik het kruisje rechtsonder. Het kruisje verschijnt zodra de muis beweegt of het scherm wordt aangeraakt.</p>' +
+      '<p><strong class="text-slate-900 dark:text-white">OBS</strong><br>Voeg de OBS-link toe als browserbron. De achtergrond is transparant.</p>' +
       '</div></div></div>';
   }
 
@@ -182,8 +183,8 @@
     return '<main class="max-w-md mx-auto px-4 py-8' + (S.anim ? ' animate-slide-up' : '') + '">' + header() +
       '<div class="' + C.card + ' p-8">' +
       '<div class="flex justify-center mb-6"><div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-full text-blue-600 dark:text-blue-400 animate-pulse-scale">' + I.radio(32) + '</div></div>' +
-      '<h2 class="text-xl font-black text-center text-slate-900 dark:text-white mb-2">Voer de code in</h2>' +
-      '<p class="text-slate-500 dark:text-slate-400 text-center mb-6 font-medium text-sm">Je vindt de code in de tracker onder <strong>Data &amp; Beheer → Live Sync</strong>.</p>' +
+      '<h2 class="text-xl font-black text-center text-slate-900 dark:text-white mb-2">Verbinden met de tracker</h2>' +
+      '<p class="text-slate-500 dark:text-slate-400 text-center mb-6 font-medium text-sm">Voer de code in die de tracker toont onder <strong>Data &amp; Beheer › Live Sync</strong>.</p>' +
       '<form data-f="connect" class="flex flex-col gap-3">' +
       '<input id="codeIn" value="' + esc(S.code) + '" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCDE" ' +
       'class="code-input w-full text-center text-3xl font-black uppercase py-4 rounded-2xl bg-slate-50 dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 outline-none text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors">' +
@@ -201,7 +202,7 @@
         '<span class="w-3 h-3 rounded-full shrink-0" style="background:' + c.color + '"></span>' +
         '<span class="font-bold truncate flex-1">' + esc(c.name) + '</span>' +
         '<span class="font-black tabular-nums">' + c.laps + '</span></li>';
-    }).join('') : '<li class="py-6 text-center text-sm text-slate-400 font-medium">Nog geen klassen ontvangen</li>';
+    }).join('') : '<li class="py-6 text-center text-sm text-slate-400 font-medium">Nog geen gegevens ontvangen</li>';
 
     return '<main class="max-w-2xl mx-auto px-4 py-8' + (S.anim ? ' animate-slide-up' : '') + '">' +
       header('<button data-a="back" aria-label="Andere code" class="' + C.icon + ' text-slate-500 dark:text-slate-400">' + I.back + '</button>') +
@@ -218,13 +219,13 @@
       '</div></div>' +
       '<div class="' + C.card + ' p-5 mb-6"><p class="' + C.label + ' mb-2">Klassen (' + st.cl.length + ')</p>' +
       '<ul class="divide-y divide-slate-100 dark:divide-slate-700 max-h-72 overflow-y-auto no-scrollbar">' + list + '</ul></div>' +
-      '<p class="' + C.label + ' mb-2 px-1">Kies een weergave</p>' +
+      '<p class="' + C.label + ' mb-2 px-1">Weergave</p>' +
       '<div class="grid sm:grid-cols-2 gap-3 mb-3">' +
-      modeBtn('show', I.trophy(26), 'Onthulling', 'Intro → top ' + PODIUM + ' → de rest → eindstand. Voor de bekendmaking van de winnaars.', true) +
-      modeBtn('live', I.radio(26), 'Live stand', 'De actuele stand, werkt automatisch bij. Voor tijdens het lopen.', false) +
+      modeBtn('show', I.trophy(26), 'Onthulling', 'Presentatie van de einduitslag: eerst de top ' + PODIUM + ', daarna de volledige ranglijst.', true) +
+      modeBtn('live', I.radio(26), 'Live stand', 'Actuele tussenstand, wordt automatisch bijgewerkt.', false) +
       '</div>' +
-      '<button data-a="copy" class="' + C.secondary + ' w-full">' + I.copy + (S.copied ? ' Gekopieerd!' : ' Kopieer OBS-link (live stand)') + '</button>' +
-      '<p class="text-center text-xs text-slate-400 font-medium mt-4 leading-relaxed">Onthulling: ' + kbd('Spatie') + ' volgende stap · ' + kbd('←') + ' terug<br>Beide: ' + kbd('Esc') + ' stoppen</p>' +
+      '<button data-a="copy" class="' + C.secondary + ' w-full">' + I.copy + (S.copied ? ' Gekopieerd!' : ' OBS-link kopiëren') + '</button>' +
+      '<p class="text-center text-xs text-slate-400 font-medium mt-4 leading-relaxed">Afsluiten met ' + kbd('Esc') + ' of het kruisje rechtsonder.</p>' +
       '</main>';
   }
 
@@ -260,10 +261,10 @@
       '<div class="blob absolute -bottom-[20vh] -right-[10vw] w-[50vw] h-[50vw] rounded-full bg-indigo-400/20 blur-3xl" style="animation-delay:-4s"></div>' +
       '<div class="relative text-center px-[5vw]">' +
       '<div class="zoom-in inline-flex items-center justify-center w-[12vh] h-[12vh] rounded-[3vh] bg-white/15 border border-white/20 backdrop-blur mb-[4vh]" style="animation-delay:.1s">' + I.trophy('6vh') + '</div>' +
-      '<p class="animate-slide-up uppercase tracking-[.4em] font-extrabold text-blue-100 text-[1.8vh] mb-[1.5vh]" style="animation-delay:.3s">De uitslag van de</p>' +
+      '<p class="animate-slide-up uppercase tracking-[.4em] font-extrabold text-blue-100 text-[1.8vh] mb-[1.5vh]" style="animation-delay:.3s">Uitslag</p>' +
       '<h1 class="animate-slide-up font-black leading-none text-[13vh] tracking-tight drop-shadow-lg" style="animation-delay:.45s">Sponsorloop</h1>' +
       '<p class="animate-slide-up text-[2.4vh] font-semibold text-blue-100 mt-[3vh]" style="animation-delay:.65s">' + esc(today) + ' · ' + st.cl.length + ' klassen</p>' +
-      '<p class="animate-slide-up text-[1.8vh] font-medium text-blue-200/80 mt-[6vh]" style="animation-delay:.85s">Sponsorloop Tracker door <span class="font-bold text-white">' + esc(CREDIT) + '</span></p>' +
+      '<p class="animate-slide-up text-[1.8vh] font-medium text-blue-200/80 mt-[6vh]" style="animation-delay:.85s">Ontwikkeld door <span class="font-bold text-white">' + esc(CREDIT) + '</span></p>' +
       '</div>' +
       '<div class="absolute bottom-[3vh] left-0 right-0 flex justify-center"><span class="hint inline-flex items-center gap-2 text-[1.6vh] font-bold text-blue-100">Druk op <kbd class="font-sans px-2.5 py-1 rounded-lg bg-white/15 border border-white/25">Spatie</kbd> om te beginnen</span></div>' +
       '</section>';
@@ -291,7 +292,7 @@
         '</div></div>';
     }).join('');
     return '<section class="relative h-[100dvh] overflow-hidden flex flex-col">' +
-      '<div class="text-center pt-[5vh] animate-slide-up"><p class="uppercase tracking-[.35em] font-extrabold text-[1.8vh] text-blue-600 dark:text-blue-400">De winnaars</p>' +
+      '<div class="text-center pt-[5vh] animate-slide-up"><p class="uppercase tracking-[.35em] font-extrabold text-[1.8vh] text-blue-600 dark:text-blue-400">Uitslag</p>' +
       '<h2 class="text-[6vh] font-black text-slate-900 dark:text-white">Top ' + top.length + '</h2></div>' +
       '<div class="flex-1 flex items-end justify-center gap-[2vw] px-[4vw]">' + cols + '</div>' +
       '<div class="h-[1.2vh] bg-slate-200 dark:bg-slate-800"></div>' +
@@ -315,7 +316,7 @@
     }).join('');
     return '<section class="relative h-[100dvh] overflow-hidden flex flex-col">' +
       '<div class="text-center pt-[4vh] pb-[2vh] animate-slide-up"><p class="uppercase tracking-[.35em] font-extrabold text-[1.8vh] text-blue-600 dark:text-blue-400">Plaats ' + (PODIUM + 1) + ' t/m ' + st.cl.length + '</p>' +
-      '<h2 class="text-[5vh] font-black text-slate-900 dark:text-white">De rest van de stand</h2></div>' +
+      '<h2 class="text-[5vh] font-black text-slate-900 dark:text-white">Ranglijst</h2></div>' +
       '<div id="scroller" class="relative fade-mask flex-1 overflow-hidden px-[4vw]"><div class="max-w-6xl mx-auto pt-[3vh] pb-[40vh]">' + rows + '</div></div>' +
       hintBar(key('Spatie') + ' overslaan') +
       '</section>';
@@ -354,7 +355,7 @@
       '</div></div>' +
       '<div id="bdGrid" data-cols="' + L.cols + '" data-goal="' + (st.goal || '') + '" class="flex-1 grid content-center gap-[1.6vh] gap-x-[1.4vw]" style="grid-template-columns:repeat(' + L.cols + ',minmax(0,1fr))">' + cards + '</div>' +
       (S.obs ? '' : '<div class="flex items-center justify-between mt-[2vh] text-[1.6vh] font-medium text-slate-400 dark:text-slate-500">' +
-        '<span>Sponsorloop Tracker door <span class="font-bold text-slate-500 dark:text-slate-400">' + esc(CREDIT) + '</span></span>' +
+        '<span>Sponsorloop Tracker · <span class="font-bold text-slate-500 dark:text-slate-400">' + esc(CREDIT) + '</span></span>' +
         '<span class="hint inline-flex items-center gap-2 font-bold">' + key(live ? 'Esc' : 'Spatie') + ' afsluiten</span></div>') +
       '</section>';
   }
@@ -363,7 +364,7 @@
   // ---------- Live stand ----------
   function renderLive(animate) {
     clearTimers();
-    app.innerHTML = boardHtml(stats(S.data), true, animate);
+    app.innerHTML = boardHtml(stats(S.data), true, animate) + (S.obs ? '' : exitBtn());
   }
   function bumpEl(el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
   // Werk het bord bij zonder opnieuw te animeren; klassen die van plek wisselen schuiven soepel
@@ -412,10 +413,20 @@
     renderLive(true);
   }
 
+  function exitBtn() {
+    return '<button id="exitFs" data-a="exit" aria-label="Weergave sluiten" title="Sluiten (Esc)" class="fixed bottom-5 right-5 z-40 ' + C.icon + ' text-slate-500 dark:text-slate-300 shadow-lg">' + I.x + '</button>';
+  }
+  // Kruisje en muiscursor tonen bij beweging of tik, daarna weer verbergen
+  var uiT;
+  function showUI() {
+    if (S.view !== 'show' && S.view !== 'live') return;
+    document.body.classList.add('ui');
+    clearTimeout(uiT); uiT = setTimeout(function () { document.body.classList.remove('ui'); }, 2500);
+  }
   function renderShow(animate) {
     clearTimers();
     var html = S.stage === 'intro' ? stageIntro() : S.stage === 'podium' ? stagePodium() : S.stage === 'scroll' ? stageScroll() : stageOverview(animate !== false);
-    app.innerHTML = html + ('<button id="exitFs" data-a="exit" aria-label="Stoppen" class="fixed top-4 right-4 z-40 opacity-0 transition-opacity ' + C.icon + ' text-slate-500">' + I.x + '</button>');
+    app.innerHTML = html + exitBtn();
     if (S.stage === 'podium') startPodium();
     if (S.stage === 'scroll') startScroll();
   }
@@ -428,6 +439,8 @@
       later(function () { countUp(el, +el.getAttribute('data-count'), COUNT); }, d);
     });
     later(function () { confetti(); }, last + COUNT);        // confetti zodra de winnaar is uitgeteld
+    // daarna automatisch door naar de rest van de ranglijst (of het eindoverzicht)
+    later(function () { go(stats(S.snap).cl.length > PODIUM ? 'scroll' : 'overview'); }, last + COUNT + 5000);
   }
 
   function startScroll() {
@@ -484,7 +497,7 @@
   }
   function exitShow() {
     clearTimers(); busy = false;
-    document.body.classList.remove('show'); document.body.style.cursor = '';
+    document.body.classList.remove('show', 'ui'); document.body.style.cursor = '';
     if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
     S.view = 'preview'; S.anim = true; render();
   }
@@ -559,12 +572,7 @@
   }
 
   // ---------- invoer ----------
-  var hideT;
-  document.addEventListener('mousemove', function () {
-    var b = document.getElementById('exitFs'); if (!b) return;
-    b.style.opacity = '1'; document.body.style.cursor = '';
-    clearTimeout(hideT); hideT = setTimeout(function () { b.style.opacity = '0'; if (S.view === 'show') document.body.style.cursor = 'none'; }, 2000);
-  });
+  ['mousemove', 'touchstart', 'pointerdown'].forEach(function (ev) { document.addEventListener(ev, showUI, { passive: true }); });
   document.addEventListener('fullscreenchange', function () { if (!document.fullscreenElement && (S.view === 'show' || S.view === 'live') && !S.obs) exitShow(); });
   document.addEventListener('keydown', function (e) {
     if (S.view === 'live' && !S.obs) { if (e.key === 'Escape') exitShow(); return; }
@@ -581,8 +589,11 @@
   app.addEventListener('input', function (e) { if (e.target.id === 'codeIn') { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); S.code = e.target.value; } });
   app.addEventListener('click', function (e) {
     var t = e.target.closest('[data-a]');
-    if (S.view === 'live') return;
-    if (S.view === 'show') { if (t && t.getAttribute('data-a') === 'exit') exitShow(); else next(); return; }
+    if (S.view === 'show' || S.view === 'live') {
+      if (t && t.getAttribute('data-a') === 'exit') exitShow();
+      else if (S.view === 'show' && S.stage === 'intro') next();   // alleen het eerste scherm start met een klik
+      return;
+    }
     if (!t) return;
     var a = t.getAttribute('data-a');
     if (a === 'info-bg' && t !== e.target) return;

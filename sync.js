@@ -80,7 +80,7 @@
   function statusChip() {
     var m = {
       ok: ['bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400', 'bg-green-500 animate-pulse', 'Live'],
-      sending: ['bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400', 'bg-blue-500 animate-pulse', 'Verbinden…'],
+      sending: ['bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400', 'bg-blue-500 animate-pulse', 'Verbinden'],
       error: ['bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400', 'bg-red-500', 'Geen verbinding'],
       idle: ['bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400', 'bg-slate-400', 'Uit']
     }[status];
@@ -89,11 +89,11 @@
 
   function infoHtml() {
     return '<div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/30 mb-6 text-sm text-blue-900 dark:text-blue-100 font-medium leading-relaxed space-y-2">' +
-      '<p class="font-black">Hoe werkt Live Sync?</p>' +
-      '<p><strong>1.</strong> Druk op <strong>Start Sync</strong>. Je krijgt een code van 5 tekens.</p>' +
-      '<p><strong>2.</strong> Open op de andere PC de <strong>stream-pagina</strong> en vul de code in.</p>' +
-      '<p><strong>3.</strong> Elke ronde die je hier telt, verschijnt daar binnen een paar seconden.</p>' +
-      '<p class="text-xs opacity-75">Alleen klasnamen, rondes, kleuren en het schooldoel worden gedeeld. Iedereen met de code kan meekijken. Met Stop Sync wordt de gedeelde data gewist.</p>' +
+      '<p class="font-black">Werkwijze</p>' +
+      '<p><strong>1.</strong> Start de synchronisatie. Er verschijnt een code van vijf tekens.</p>' +
+      '<p><strong>2.</strong> Open de stream-pagina op het andere apparaat en voer de code in.</p>' +
+      '<p><strong>3.</strong> Wijzigingen in de tracker worden binnen enkele seconden doorgegeven.</p>' +
+      '<p class="text-xs opacity-75">Alleen klasnamen, rondes, kleuren en het schooldoel worden gedeeld. Bij het stoppen worden de gedeelde gegevens verwijderd. Live Sync staat standaard uit.</p>' +
       '</div>';
   }
 
@@ -106,29 +106,29 @@
       if (!code) {
         body =
           '<div class="flex justify-center mb-5"><div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-full text-blue-600 dark:text-blue-400 animate-pulse-scale">' + I.radio(28) + '</div></div>' +
-          '<p class="text-slate-500 dark:text-slate-400 text-center mb-6 font-medium">Laat de stand live meekijken op een andere PC, bijvoorbeeld voor een livestream.</p>' +
+          '<p class="text-slate-500 dark:text-slate-400 text-center mb-6 font-medium">Deel de actuele stand met een tweede scherm, bijvoorbeeld voor een livestream.</p>' +
           '<div class="flex flex-col gap-3">' +
           (prevCode
-            ? '<button data-a="resume" class="' + C.primary + '">' + I.radio(18) + ' Hervat met code ' + prevCode + '</button>' +
-              '<button data-a="start" class="' + C.secondary + '">Start met nieuwe code</button>'
-            : '<button data-a="start" class="' + C.primary + '">' + I.radio(18) + ' Start Sync</button>') +
-          '<a href="' + streamUrl() + '" target="_blank" rel="noopener" class="' + C.secondary + '">' + I.ext + ' Naar stream-pagina</a>' +
+            ? '<button data-a="resume" class="' + C.primary + '">' + I.radio(18) + ' Hervatten met code ' + prevCode + '</button>' +
+              '<button data-a="start" class="' + C.secondary + '">Nieuwe code aanmaken</button>'
+            : '<button data-a="start" class="' + C.primary + '">' + I.radio(18) + ' Synchronisatie starten</button>') +
+          '<a href="' + streamUrl() + '" target="_blank" rel="noopener" class="' + C.secondary + '">' + I.ext + ' Stream-pagina openen</a>' +
           '</div>';
       } else {
         var when = lastOkAt ? new Date(lastOkAt).toLocaleTimeString('nl-NL') : '—';
         body =
           '<div class="flex justify-center mb-4">' + statusChip() + '</div>' +
-          '<p class="text-[10px] uppercase text-slate-400 dark:text-slate-500 font-extrabold tracking-widest text-center mb-2">Code voor de stream-PC</p>' +
+          '<p class="text-[10px] uppercase text-slate-400 dark:text-slate-500 font-extrabold tracking-widest text-center mb-2">Code</p>' +
           '<div class="flex justify-center gap-1.5 mb-3">' +
           code.split('').map(function (ch) {
             return '<span class="w-11 h-14 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-2xl font-black text-slate-900 dark:text-white">' + ch + '</span>';
           }).join('') + '</div>' +
           '<p class="text-xs text-center text-slate-400 dark:text-slate-500 font-medium mb-6">' +
-          (err ? 'Kan de server niet bereiken. Controleer je internet, opnieuw proberen…' : 'Laatst verstuurd: ' + when) + '</p>' +
+          (err ? 'Geen verbinding met de server. Er wordt opnieuw geprobeerd.' : 'Laatste update: ' + when) + '</p>' +
           '<div class="flex flex-col gap-3">' +
-          '<a href="' + streamUrl(code) + '" target="_blank" rel="noopener" class="' + C.primary + '">' + I.ext + ' Open stream-pagina</a>' +
-          '<button data-a="copy" class="' + C.secondary + '">' + I.copy + (copied ? ' Gekopieerd!' : ' Kopieer stream-link') + '</button>' +
-          '<button data-a="stop" class="' + C.danger + '">Stop Sync</button>' +
+          '<a href="' + streamUrl(code) + '" target="_blank" rel="noopener" class="' + C.primary + '">' + I.ext + ' Stream-pagina openen</a>' +
+          '<button data-a="copy" class="' + C.secondary + '">' + I.copy + (copied ? ' Gekopieerd!' : ' Link kopiëren') + '</button>' +
+          '<button data-a="stop" class="' + C.danger + '">Synchronisatie stoppen</button>' +
           '</div>';
       }
       modal =
