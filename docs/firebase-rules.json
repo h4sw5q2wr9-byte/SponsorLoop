@@ -1,0 +1,25 @@
+{
+  "rules": {
+    "sessions": {
+      "$code": {
+        ".read": "$code.matches(/^[A-Z2-9]{5}$/)",
+        ".write": "auth != null && $code.matches(/^[A-Z2-9]{5}$/) && (!data.exists() || data.child('owner').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['updatedAt', 'owner'])",
+        "owner": { ".validate": "newData.val() === auth.uid" },
+        "classes": {
+          "$i": {
+            ".validate": "$i.matches(/^[0-9]{1,2}$/) && newData.hasChildren(['name', 'laps'])",
+            "name": { ".validate": "newData.isString() && newData.val().length <= 60" },
+            "laps": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 100000" },
+            "color": { ".validate": "newData.isString() && newData.val().length <= 9" },
+            "$other": { ".validate": false }
+          }
+        },
+        "schoolGoal": { ".validate": "newData.isNumber()" },
+        "updatedAt": { ".validate": "newData.isNumber()" },
+        "seenAt": { ".validate": "newData.isNumber()" },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}
