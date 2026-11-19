@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "classes": [
+    {
+      "name": "SO 8A & 8B",
+      "laps": 61,
+      "color": "#6366f1"
+    },
+    {
+      "name": "SO 7C & 7B",
+      "laps": 48,
+      "color": "#3b82f6"
+    },
+    {
+      "name": "SO 7A & KGB",
+      "laps": 57,
+      "color": "#06b6d4"
+    },
+    {
+      "name": "VSO UNIT-C",
+      "laps": 39,
+      "color": "#06b6d4"
+    },
+    {
+      "name": "VSO 3Ka/3Ta/3Tb",
+      "laps": 44,
+      "color": "#64748b"
+    },
+    {
+      "name": "VSO 5T/4/5B",
+      "laps": 72,
+      "color": "#d946ef"
+    },
+    {
+      "name": "SO 6A & 6B",
+      "laps": 66,
+      "color": "#10b981"
+    },
+    {
+      "name": "SO 5A & 5B",
+      "laps": 58,
+      "color": "#84cc16"
+    },
+    {
+      "name": "SO 4 & 4/5",
+      "laps": 94,
+      "color": "#facc15"
+    },
+    {
+      "name": "SO 3 & SO KGO",
+      "laps": 35,
+      "color": "#f97316"
+    },
+    {
+      "name": "SO Verticaal",
+      "laps": 88,
+      "color": "#8b5cf6"
+    },
+    {
+      "name": "SO 1/2 & VSO 4/5K",
+      "laps": 52,
+      "color": "#ef4444"
+    },
+    {
+      "name": "VSO Entrée",
+      "laps": 41,
+      "color": "#8b5cf6"
+    },
+    {
+      "name": "VSO 4Ta/4Tb",
+      "laps": 57,
+      "color": "#f43f5e"
+    },
+    {
+      "name": "VSO 3Ba/3Kb",
+      "laps": 29,
+      "color": "#f43f5e"
+    },
+    {
+      "name": "VSO 3/4/5 Arbeid",
+      "laps": 73,
+      "color": "#d946ef"
+    },
+    {
+      "name": "VSO Unit B",
+      "laps": 46,
+      "color": "#3b82f6"
+    },
+    {
+      "name": "VSO Unit A",
+      "laps": 63,
+      "color": "#6366f1"
+    }
+  ],
+  "schoolGoal": 1000
+}
