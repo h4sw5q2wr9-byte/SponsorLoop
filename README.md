@@ -26,6 +26,8 @@ npm run build    # bouwt naar dist/
 ```
 Elke push naar `main` wordt automatisch gebouwd en gepubliceerd (GitHub Actions → Pages).
 
+De site werkt na het eerste bezoek ook offline (service worker via `vite-plugin-pwa`) en is te installeren als app. Firebase wordt nooit gecachet.
+
 ## Mappen
 ```
 src/
