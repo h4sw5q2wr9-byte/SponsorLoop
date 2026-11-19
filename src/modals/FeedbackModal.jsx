@@ -51,10 +51,10 @@ export default function FeedbackModal({ open, onClose, initialType = 'idee', ext
           <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={4} maxLength={1500}
             placeholder={type === 'idee' ? 'Wat kan er beter of leuker?' : 'Wat ging er mis?'}
             className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-2xl px-4 py-3 font-medium outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
-          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={60} placeholder="Naam (mag leeg)"
+          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={60} placeholder="Naam of voornaam (mag leeg)"
             className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-2xl px-4 py-3 font-medium outline-none focus:ring-2 focus:ring-blue-500" />
           <p className="text-xs text-slate-400 font-medium">
-            Je bericht wordt openbaar op GitHub gezet, dus geen persoonlijke gegevens.
+            Je bericht (en naam) wordt openbaar op GitHub gezet, dus geen persoonlijke gegevens.
             {type === 'probleem' && ' Technische info (browser, scherm) gaat automatisch mee.'}
           </p>
           {error && <p className="text-sm font-bold text-red-500">{error}</p>}

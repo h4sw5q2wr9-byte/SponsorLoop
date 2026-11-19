@@ -133,7 +133,7 @@ function feedbackForm() {
   };
   return head + '<div class="flex gap-2 mb-2">' + t('idee', 'Idee') + t('probleem', 'Probleem') + '</div>' +
     '<textarea id="fbMsg" rows="3" maxlength="1500" placeholder="Schrijf je bericht…" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>' +
-    '<p class="text-xs text-slate-400 my-2">Wordt openbaar op GitHub gezet: geen persoonlijke gegevens.</p>' +
+    '<p class="text-xs text-slate-400 my-2">Bericht wordt openbaar op GitHub gezet: geen persoonlijke gegevens.</p>' +
     (f.error ? '<p class="text-sm font-bold text-red-500 mb-2">' + esc(f.error) + '</p>' : '') +
     '<button data-a="fbsend" class="' + C.primary + ' w-full py-2.5 text-sm"' + (f.state === 'sending' ? ' disabled' : '') + '>' + (f.state === 'sending' ? 'Versturen…' : 'Versturen') + '</button></div>';
 }
@@ -573,7 +573,7 @@ app.addEventListener('click', function (e) {
   else if (a === 'fbsend') {
     var msg = (document.getElementById('fbMsg') || {}).value || '';
     S.fb.state = 'sending'; S.fb.error = ''; render(); document.getElementById('fbMsg').value = msg;
-    submitFeedback({ type: S.fb.type, message: msg, info: S.fb.type === 'probleem' ? collectInfo({ Code: S.code || '-', Weergave: S.view }) : '' })
+    submitFeedback({ type: S.fb.type, message: msg, info: S.fb.type === 'probleem' ? collectInfo({ Weergave: S.view }) : '' })
       .then(function () { S.fb.state = 'sent'; render(); },
         function (e) { S.fb.state = 'idle'; S.fb.error = e.message; render(); var el = document.getElementById('fbMsg'); if (el) el.value = msg; });
   }

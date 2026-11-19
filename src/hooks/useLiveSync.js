@@ -43,9 +43,28 @@ export function useLiveSync(classes, goal) {
 
   latest.current = { classes, goal };
 
+  // Altijd maar één upload tegelijk, op volgorde: zo kan een trage oudere upload nooit een
+  // nieuwere stand overschrijven. Komt er tijdens een upload iets bij, dan volgt direct een nieuwe.
+  const busy = useRef(false);
+  const again = useRef(null); // { target, force } die nog moet
+
   const send = useCallback(async (target, force = false) => {
     clearTimeout(retry.current);
     if (!target) return;
+    if (busy.current) {
+      again.current = { target, force: force || (again.current && again.current.force) };
+      return;
+    }
+    busy.current = true;
+    try { await upload(target, force); } finally {
+      busy.current = false;
+      const next = again.current;
+      again.current = null;
+      if (next) send(next.target, next.force);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const upload = async (target, force) => {
     const { classes: cl, goal: g } = latest.current;
     const prev = !force && lastSent.current && lastSent.current.code === target ? lastSent.current : null;
     const update = buildUpdate(prev, cl, g, Date.now());
@@ -60,7 +79,7 @@ export function useLiveSync(classes, goal) {
       if (res.status === 401 && auth) {
         lastSent.current = null;
         // Kleine update geweigerd? Dan is de code in Firebase waarschijnlijk opgeruimd: alles opnieuw sturen.
-        if (!update.full) { send(target, true); return; }
+        if (!update.full) { again.current = { target, force: true }; return; }
         setStatus('denied'); return; // volledige upload geweigerd: code is van een ander apparaat
       }
       if (!res.ok) throw new FirebaseUnavailable(res.status);
@@ -74,7 +93,7 @@ export function useLiveSync(classes, goal) {
       setStatus(unavailable ? 'unavailable' : 'error');
       retry.current = setTimeout(() => send(target, true), unavailable ? RETRY_UNAVAILABLE_MS : RETRY_MS);
     }
-  }, []);
+  };
 
   // Bundelen: bij de eerste wijziging start een timer van BATCH_MS. Alles wat in die tijd
   // gebeurt (meerdere tikken, meerdere klassen) gaat samen in één bericht. De timer wordt

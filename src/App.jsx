@@ -219,7 +219,7 @@ export default function App() {
         onOpenSync={() => { setDataOpen(false); setSyncOpen(true); }}
       />
       <LiveSyncModal open={syncOpen} onClose={() => setSyncOpen(false)} sync={sync}
-        onReport={() => { setSyncOpen(false); setFeedback({ type: 'probleem', extra: { 'Live Sync': `${sync.status} (code ${sync.code})` } }); }} />
+        onReport={() => { setSyncOpen(false); setFeedback({ type: 'probleem', extra: { 'Live Sync': sync.status } }); }} />
       <FeedbackModal key={feedback ? feedback.type : 'closed'} open={!!feedback} initialType={feedback?.type} extraInfo={feedback?.extra}
         onClose={() => setFeedback(null)} />
       <OldBrowserModal open={oldBrowser} onClose={() => { setOldBrowser(false); showIntro(); }} />
