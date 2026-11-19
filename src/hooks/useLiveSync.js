@@ -5,6 +5,14 @@ import { KEYS, read, write } from '../lib/storage.js';
 
 const HEARTBEAT_MS = 15000; // stream-pagina ziet zo dat de tracker nog actief is
 const RETRY_MS = 3000;
+const FORGOTTEN_AFTER_MS = 24 * 60 * 60 * 1000; // vergeten code na een dag opruimen
+
+/** Verwijdert een code uit Firebase (alleen mogelijk voor de eigen tracker). */
+function removeCode(c) {
+  return getAuth()
+    .then((auth) => fetch(sessionUrl(c, auth && auth.token), { method: 'DELETE' }))
+    .catch(() => {});
+}
 
 /**
  * Live Sync: stuurt klassen + doel naar Firebase zolang sync aan staat.
@@ -12,7 +20,18 @@ const RETRY_MS = 3000;
  */
 export function useLiveSync(classes, goal) {
   const [code, setCode] = useState(null);
-  const [prevCode, setPrevCode] = useState(() => read(KEYS.liveCode));
+  const [prevCode, setPrevCode] = useState(() => {
+    // Code van meer dan een dag geleden die nooit gestopt is? Stil opruimen.
+    const old = read(KEYS.liveCode);
+    const seen = Number(read(KEYS.liveSeen)) || 0;
+    if (old && Date.now() - seen > FORGOTTEN_AFTER_MS) {
+      removeCode(old);
+      write(KEYS.liveCode, null);
+      write(KEYS.liveSeen, null);
+      return null;
+    }
+    return old;
+  });
   const [status, setStatus] = useState('idle'); // idle | sending | ok | error | denied
   const [lastOkAt, setLastOkAt] = useState(0);
   const latest = useRef({ classes, goal });
@@ -38,6 +57,7 @@ export function useLiveSync(classes, goal) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setStatus('ok');
       setLastOkAt(Date.now());
+      write(KEYS.liveSeen, String(Date.now()));
     } catch {
       setStatus('error');
       retry.current = setTimeout(() => send(target), RETRY_MS);
@@ -57,7 +77,7 @@ export function useLiveSync(classes, goal) {
     if (!code) return undefined;
     const beat = () => getAuth()
       .then((auth) => fetch(sessionUrl(code, auth && auth.token), { method: 'PATCH', body: JSON.stringify({ seenAt: Date.now() }) }))
-      .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); setStatus('ok'); setLastOkAt(Date.now()); })
+      .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); setStatus('ok'); setLastOkAt(Date.now()); write(KEYS.liveSeen, String(Date.now())); })
       .catch(() => send(code));
     const t = setInterval(beat, HEARTBEAT_MS);
     return () => clearInterval(t);
@@ -65,7 +85,9 @@ export function useLiveSync(classes, goal) {
 
   const start = useCallback((reuse = false) => {
     const c = reuse && prevCode ? prevCode : newCode();
+    if (!reuse && prevCode) removeCode(prevCode); // oude code van dit apparaat opruimen
     write(KEYS.liveCode, c);
+    write(KEYS.liveSeen, String(Date.now()));
     setPrevCode(c);
     setStatus('sending');
     setCode(c);
@@ -73,8 +95,9 @@ export function useLiveSync(classes, goal) {
 
   const stop = useCallback(() => {
     clearTimeout(retry.current);
-    if (code) getAuth().then((auth) => fetch(sessionUrl(code, auth && auth.token), { method: 'DELETE' })).catch(() => {});
+    if (code) removeCode(code);
     write(KEYS.liveCode, null);
+    write(KEYS.liveSeen, null);
     setPrevCode(null);
     setCode(null);
     setStatus('idle');

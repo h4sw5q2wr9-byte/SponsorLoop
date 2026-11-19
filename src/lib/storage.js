@@ -8,6 +8,7 @@ export const KEYS = {
   theme: 'sponsorloop_theme',
   introSeen: 'sponsorloop_intro_seen',
   liveCode: 'sponsorloop_live_code',
+  liveSeen: 'sponsorloop_live_seen', // laatste keer dat Live Sync actief was
 };
 
 export const DEFAULT_CLASSES = [
