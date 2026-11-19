@@ -5,6 +5,7 @@ import { KEYS, read, write } from '../lib/storage.js';
 
 const HEARTBEAT_MS = 30000; // stream-pagina ziet zo dat de tracker nog actief is
 const RETRY_MS = 3000;
+const BATCH_MS = 2000; // wijzigingen 2 seconden verzamelen en dan samen versturen
 const RETRY_UNAVAILABLE_MS = 30000; // Firebase weigert: rustig opnieuw proberen
 const FORGOTTEN_AFTER_MS = 24 * 60 * 60 * 1000; // vergeten code na een dag opruimen
 
@@ -69,12 +70,16 @@ export function useLiveSync(classes, goal) {
     }
   }, []);
 
-  // Bij elke wijziging (kort gebundeld) versturen
+  // Bundelen: bij de eerste wijziging start een timer van BATCH_MS. Alles wat in die tijd
+  // gebeurt (meerdere tikken, meerdere klassen) gaat samen in één bericht. De timer wordt
+  // niet verlengd, dus ook bij heel snel doortikken gaat er minstens elke 2 s een update uit.
+  const batch = useRef(null);
   useEffect(() => {
-    if (!code) return undefined;
-    const t = setTimeout(() => send(code), 250);
-    return () => clearTimeout(t);
+    if (!code || batch.current) return;
+    const first = !(lastSent.current && lastSent.current.code === code); // net gestart: meteen sturen
+    batch.current = setTimeout(() => { batch.current = null; send(code); }, first ? 0 : BATCH_MS);
   }, [classes, goal, code, send]);
+  useEffect(() => () => { clearTimeout(batch.current); batch.current = null; }, [code]);
 
   // Hartslag: alleen een tijdstip (klein), zodat de stream weet dat de tracker actief is.
   // Mislukt het, dan wordt de hele stand opnieuw verstuurd.

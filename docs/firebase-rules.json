@@ -5,20 +5,62 @@
         ".read": "$code.matches(/^[A-Z2-9]{5}$/)",
         ".write": "auth != null && $code.matches(/^[A-Z2-9]{5}$/) && (!data.exists() || data.child('owner').val() === auth.uid)",
         ".validate": "newData.hasChildren(['updatedAt', 'owner'])",
-        "owner": { ".validate": "newData.val() === auth.uid" },
+        "owner": {
+          ".validate": "newData.val() === auth.uid"
+        },
         "classes": {
           "$i": {
             ".validate": "$i.matches(/^[0-9]{1,2}$/) && newData.hasChildren(['name', 'laps'])",
-            "name": { ".validate": "newData.isString() && newData.val().length <= 60" },
-            "laps": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 100000" },
-            "color": { ".validate": "newData.isString() && newData.val().length <= 9" },
-            "$other": { ".validate": false }
+            "name": {
+              ".validate": "newData.isString() && newData.val().length <= 60"
+            },
+            "laps": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 100000"
+            },
+            "color": {
+              ".validate": "newData.isString() && newData.val().length <= 9"
+            },
+            "$other": {
+              ".validate": false
+            }
           }
         },
-        "schoolGoal": { ".validate": "newData.isNumber()" },
-        "updatedAt": { ".validate": "newData.isNumber()" },
-        "seenAt": { ".validate": "newData.isNumber()" },
-        "$other": { ".validate": false }
+        "schoolGoal": {
+          ".validate": "newData.isNumber()"
+        },
+        "updatedAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "seenAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "feedback": {
+      "$id": {
+        ".write": "auth != null && !data.exists() && $id.beginsWith(auth.uid + '_')",
+        ".validate": "newData.hasChildren(['type', 'message', 'createdAt'])",
+        "type": {
+          ".validate": "newData.val() === 'idee' || newData.val() === 'probleem'"
+        },
+        "message": {
+          ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 1500"
+        },
+        "name": {
+          ".validate": "newData.isString() && newData.val().length <= 60"
+        },
+        "info": {
+          ".validate": "newData.isString() && newData.val().length <= 1500"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber() && newData.val() <= now + 60000"
+        },
+        "$other": {
+          ".validate": false
+        }
       }
     }
   }

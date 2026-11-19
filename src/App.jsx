@@ -10,6 +10,7 @@ import { ExportReminderModal, HelpModal, OldBrowserModal, WelcomeModal } from '.
 import { isOldBrowser } from './lib/browser.js';
 import { DataModal, StatusOverlay } from './modals/DataModals.jsx';
 import LiveSyncModal from './modals/LiveSyncModal.jsx';
+import FeedbackModal from './modals/FeedbackModal.jsx';
 import { useLiveSync } from './hooks/useLiveSync.js';
 import { colorAt } from './lib/colors.js';
 import { backupFilename, downloadJson, parseBackup, toBackup } from './lib/backup.js';
@@ -46,6 +47,7 @@ export default function App() {
   const [help, setHelp] = useState(false);
   const [dataOpen, setDataOpen] = useState(false);
   const [syncOpen, setSyncOpen] = useState(false);
+  const [feedback, setFeedback] = useState(null); // { type, extra } als het meldingsvenster open is
   const [status, setStatus] = useState({ state: 'idle', message: '' });
   const fileInput = useRef(null);
 
@@ -216,10 +218,13 @@ export default function App() {
         liveCode={sync.code}
         onOpenSync={() => { setDataOpen(false); setSyncOpen(true); }}
       />
-      <LiveSyncModal open={syncOpen} onClose={() => setSyncOpen(false)} sync={sync} />
+      <LiveSyncModal open={syncOpen} onClose={() => setSyncOpen(false)} sync={sync}
+        onReport={() => { setSyncOpen(false); setFeedback({ type: 'probleem', extra: { 'Live Sync': `${sync.status} (code ${sync.code})` } }); }} />
+      <FeedbackModal key={feedback ? feedback.type : 'closed'} open={!!feedback} initialType={feedback?.type} extraInfo={feedback?.extra}
+        onClose={() => setFeedback(null)} />
       <OldBrowserModal open={oldBrowser} onClose={() => { setOldBrowser(false); showIntro(); }} />
       <WelcomeModal open={welcome} onClose={() => setWelcome(false)} />
-      <HelpModal open={help} onClose={() => setHelp(false)} />
+      <HelpModal open={help} onClose={() => setHelp(false)} onFeedback={() => { setHelp(false); setFeedback({ type: 'idee' }); }} />
       <ExportReminderModal open={reminder} onClose={() => setReminder(false)} onExport={() => { setReminder(false); exportData(); }} />
       <StatusOverlay status={status.state} message={status.message} />
     </>

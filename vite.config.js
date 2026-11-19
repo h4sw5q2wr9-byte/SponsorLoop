@@ -7,6 +7,10 @@ import { resolve } from 'node:path';
 // base './' zodat de site werkt onder https://<user>.github.io/SponsorLoop/
 export default defineConfig({
   base: './',
+  // Versie (korte commit-code) voor probleemmeldingen
+  define: {
+    __APP_VERSION__: JSON.stringify((process.env.GITHUB_SHA || 'dev').slice(0, 7)),
+  },
   plugins: [
     react(),
     // Oudere browsers (bijv. de ingebouwde browser van Samsung-tv's) krijgen

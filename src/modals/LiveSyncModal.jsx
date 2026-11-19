@@ -20,7 +20,7 @@ const STATUS = {
 
 const streamUrl = (code) => new URL(`stream.html${code ? `?code=${code}` : ''}`, location.href).href;
 
-export default function LiveSyncModal({ open, onClose, sync }) {
+export default function LiveSyncModal({ open, onClose, sync, onReport }) {
   const [info, setInfo] = useState(false);
   const [copied, setCopied] = useState(false);
   const { code, prevCode, status, lastOkAt, start, stop } = sync;
@@ -81,8 +81,11 @@ export default function LiveSyncModal({ open, onClose, sync }) {
             ))}
           </div>
           <p className="text-xs text-center text-slate-400 dark:text-slate-500 font-medium mb-6">
-            {status === 'unavailable' ? `Live Sync is even niet beschikbaar. Tellen gaat gewoon door. Blijft dit zo? Neem contact op met ${CONTACT}.` : status === 'denied' ? 'Deze code hoort bij een ander apparaat. Stop en kies een nieuwe code.' : status === 'error' ? 'Geen verbinding, opnieuw proberen…' : `Laatste update: ${lastOkAt ? new Date(lastOkAt).toLocaleTimeString('nl-NL') : '—'}`}
+            {status === 'unavailable' ? `Live Sync is even niet beschikbaar. Tellen gaat gewoon door. Blijft dit zo? Meld het hieronder of neem contact op met ${CONTACT}.` : status === 'denied' ? 'Deze code hoort bij een ander apparaat. Stop en kies een nieuwe code.' : status === 'error' ? 'Geen verbinding, opnieuw proberen…' : `Laatste update: ${lastOkAt ? new Date(lastOkAt).toLocaleTimeString('nl-NL') : '—'}`}
           </p>
+          {status === 'unavailable' && onReport && (
+            <button type="button" onClick={onReport} className="w-full mb-3 text-sm font-bold text-orange-600 dark:text-orange-300 underline">Probleem melden</button>
+          )}
           <div className="flex flex-col gap-3">
             <a href={streamUrl(code)} target="_blank" rel="noopener noreferrer" className={C.primary}><ExternalLink size={18} /> Stream-pagina</a>
             <button type="button" onClick={copy} className={C.secondary}><Copy size={18} /> {copied ? 'Gekopieerd!' : 'Link kopiëren'}</button>

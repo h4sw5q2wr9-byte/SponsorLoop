@@ -20,6 +20,12 @@ De regels staan in [`docs/firebase-rules.json`](docs/firebase-rules.json) (plakk
 Firebase is alleen een doorgeefluik: de echte gegevens staan op het tracker-apparaat. De tracker ruimt zijn eigen
 oude codes op (bij een nieuwe code of na een dag). Alles opruimen kan veilig met de hand: Realtime Database → Data → `sessions` verwijderen.
 
+## Feedback en problemen
+In de app (Beheer → ? → *Idee of probleem melden*, en op de stream-pagina in het info-venster) kunnen gebruikers
+een idee of probleem sturen. Dat komt in Firebase (`/feedback`, niet leesbaar voor anderen) en wordt elk half uur
+door `.github/workflows/feedback.yml` omgezet in een **GitHub-issue** (label `idee` of `bug`). Nodig: het secret
+`FIREBASE_SERVICE_ACCOUNT` (service-account JSON uit Firebase). Let op: issues in een openbare repo zijn openbaar.
+
 ## Ontwikkelen
 ```bash
 npm install

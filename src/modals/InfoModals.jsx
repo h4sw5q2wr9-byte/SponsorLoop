@@ -1,4 +1,4 @@
-import { AlertTriangle, Download, Info, Plus, Settings, Trophy } from 'lucide-react';
+import { AlertTriangle, Download, Info, MessageSquarePlus, Plus, Settings, Trophy } from 'lucide-react';
 import Button from '../components/Button.jsx';
 import Modal, { ModalHeader, ModalIcon } from '../components/Modal.jsx';
 
@@ -44,7 +44,7 @@ export function WelcomeModal({ open, onClose }) {
   );
 }
 
-export function HelpModal({ open, onClose }) {
+export function HelpModal({ open, onClose, onFeedback }) {
   const h = 'text-sm font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider';
   const tip = 'flex gap-3 items-start text-xs text-slate-600 dark:text-slate-300 font-medium';
   const dot = <span className="mt-1 block w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />;
@@ -70,6 +70,10 @@ export function HelpModal({ open, onClose }) {
           <h4 className={h}>Data</h4>
           <Warning>Data staat alleen op dit apparaat. Maak altijd een backup via Exporteren.</Warning>
         </div>
+        <button type="button" onClick={onFeedback}
+          className="w-full flex items-center justify-center gap-2 rounded-2xl py-3 font-bold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 active:scale-95 transition-all">
+          <MessageSquarePlus size={18} /> Idee of probleem melden
+        </button>
       </div>
     </Modal>
   );

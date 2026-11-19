@@ -1,5 +1,6 @@
 import './stream.css';
 import { subscribe } from '../lib/liveFeed.js';
+import { collectInfo, submitFeedback } from '../lib/feedback.js';
 import { standings } from '../lib/standings.js';
 
 
@@ -118,7 +119,23 @@ function infoModal() {
     '<p><strong class="text-slate-900 dark:text-white">3.</strong> Kies <em>Live stand</em> of <em>Onthulling</em>.</p>' +
     '<p class="pt-2 text-slate-400">Onthulling start met ' + kbd('Spatie') + ' of een klik, daarna gaat alles vanzelf. Stoppen met ' + kbd('Esc') + ' of het kruisje (beweeg de muis).</p>' +
     '<p class="text-slate-400">De OBS-link werkt als browserbron met doorzichtige achtergrond.</p>' +
-    '</div></div></div>';
+    '</div>' + feedbackForm() + '</div></div>';
+}
+
+// Feedback / probleem melden (komt als issue in de GitHub-repository)
+function feedbackForm() {
+  var f = S.fb || (S.fb = { type: 'probleem', state: 'idle', error: '' });
+  var head = '<div class="mt-6 pt-5 border-t border-slate-200 dark:border-slate-700"><p class="font-black text-slate-900 dark:text-white mb-3">Idee of probleem melden</p>';
+  if (f.state === 'sent') return head + '<p class="text-sm font-bold text-green-600">Verstuurd, bedankt!</p></div>';
+  var t = function (id, label) {
+    return '<button data-a="fbtype" data-type="' + id + '" class="flex-1 py-2 rounded-xl text-sm font-bold border-2 ' +
+      (f.type === id ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' : 'border-transparent bg-slate-100 dark:bg-slate-700') + '">' + label + '</button>';
+  };
+  return head + '<div class="flex gap-2 mb-2">' + t('idee', 'Idee') + t('probleem', 'Probleem') + '</div>' +
+    '<textarea id="fbMsg" rows="3" maxlength="1500" placeholder="Schrijf je bericht…" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>' +
+    '<p class="text-xs text-slate-400 my-2">Wordt openbaar op GitHub gezet: geen persoonlijke gegevens.</p>' +
+    (f.error ? '<p class="text-sm font-bold text-red-500 mb-2">' + esc(f.error) + '</p>' : '') +
+    '<button data-a="fbsend" class="' + C.primary + ' w-full py-2.5 text-sm"' + (f.state === 'sending' ? ' disabled' : '') + '>' + (f.state === 'sending' ? 'Versturen…' : 'Versturen') + '</button></div>';
 }
 
 // ---------- connect / preview ----------
@@ -551,7 +568,15 @@ app.addEventListener('click', function (e) {
   if (!t) return;
   var a = t.getAttribute('data-a');
   if (a === 'info-bg' && t !== e.target) return;
-  if (a === 'info' || a === 'info-bg') { S.info = !S.info; render(); }
+  if (a === 'info' || a === 'info-bg') { S.info = !S.info; if (!S.info && S.fb && S.fb.state === 'sent') S.fb = null; render(); }
+  else if (a === 'fbtype') { var keep = (document.getElementById('fbMsg') || {}).value || ''; S.fb.type = t.getAttribute('data-type'); render(); document.getElementById('fbMsg').value = keep; }
+  else if (a === 'fbsend') {
+    var msg = (document.getElementById('fbMsg') || {}).value || '';
+    S.fb.state = 'sending'; S.fb.error = ''; render(); document.getElementById('fbMsg').value = msg;
+    submitFeedback({ type: S.fb.type, message: msg, info: S.fb.type === 'probleem' ? collectInfo({ Code: S.code || '-', Weergave: S.view }) : '' })
+      .then(function () { S.fb.state = 'sent'; render(); },
+        function (e) { S.fb.state = 'idle'; S.fb.error = e.message; render(); var el = document.getElementById('fbMsg'); if (el) el.value = msg; });
+  }
   else if (a === 'theme') {
     var dark = !isDark(); document.documentElement.classList.toggle('dark', dark);
     try { localStorage.setItem('sponsorloop_theme', dark ? 'dark' : 'light'); } catch (er) {}

@@ -1,0 +1,28 @@
+name: Feedback naar issues
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # elk half uur
+  workflow_dispatch:          # ook handmatig te starten via Actions
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: feedback
+  cancel-in-progress: false
+
+jobs:
+  feedback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Meldingen omzetten in issues
+        run: node scripts/feedback-to-issues.mjs
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
