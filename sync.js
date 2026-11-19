@@ -97,11 +97,6 @@
 
   function render() {
     var err = status === 'error';
-    var pill = code && !open
-      ? '<button data-a="open" class="fixed right-3 bottom-24 z-40 inline-flex items-center gap-2 pl-2.5 pr-3 py-1.5 rounded-full text-xs font-black shadow-lg border transition-all active:scale-95 ' +
-        (err ? 'bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-300 border-red-100 dark:border-red-900/40' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700') + '">' +
-        '<span class="w-2 h-2 rounded-full ' + (err ? 'bg-red-500' : 'bg-green-500 animate-pulse') + '"></span>LIVE <span class="tabular-nums tracking-widest">' + code + '</span></button>'
-      : '';
 
     var modal = '';
     if (open) {
@@ -143,7 +138,7 @@
         (showInfo ? infoHtml() : '') + body +
         '</div></div>';
     }
-    root.innerHTML = pill + modal;
+    root.innerHTML = modal;
   }
 
   root.addEventListener('click', function (e) {
@@ -152,8 +147,7 @@
     var a = t.getAttribute('data-a');
     if (a === 'close-bg' && t !== e.target) return; // klik binnen het venster
     if (navigator.vibrate) navigator.vibrate(10);
-    if (a === 'open') { open = true; showInfo = false; }
-    else if (a === 'close' || a === 'close-bg') open = false;
+    if (a === 'close' || a === 'close-bg') open = false;
     else if (a === 'info') showInfo = !showInfo;
     else if (a === 'start') start();
     else if (a === 'stop') stop();

@@ -14,5 +14,5 @@ Deze repo is al klaar: Settings → Pages → Deploy from branch → `main` / ro
 
 ## Gebruik
 - Tracker: **Beheer → Data & Beheer (icoon) → Live Sync → Start Sync** geeft een code.
-- Andere PC: open `stream.html`, voer de code in, check het voorbeeld en druk op **Start fullscreen**.
-- OBS: knop **Kopieer OBS-link** op de stream-pagina → Browser-bron (transparante achtergrond).
+- Andere PC: open `stream.html`, voer de code in en druk op **Start onthulling**. Met Spatie: intro → top 3 → rest van de stand → eindoverzicht → afsluiten. (← terug, Esc stoppen)
+- OBS: **Kopieer OBS-link** geeft een live eindoverzicht met transparante achtergrond (Browser-bron).
