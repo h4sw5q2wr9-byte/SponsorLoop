@@ -4,7 +4,8 @@ import ErrorBoundary from './components/ErrorBoundary.jsx';
 import TrackerPage from './pages/TrackerPage.jsx';
 import ManagePage from './pages/ManagePage.jsx';
 import { DeleteAllModal, DeleteClassModal, DuplicateNameModal, EditClassModal } from './modals/ClassModals.jsx';
-import { ExportReminderModal, HelpModal, WelcomeModal } from './modals/InfoModals.jsx';
+import { ExportReminderModal, HelpModal, OldBrowserModal, WelcomeModal } from './modals/InfoModals.jsx';
+import { isOldBrowser } from './lib/browser.js';
 import { DataModal, StatusOverlay } from './modals/DataModals.jsx';
 import LiveSyncModal from './modals/LiveSyncModal.jsx';
 import { useLiveSync } from './hooks/useLiveSync.js';
@@ -31,6 +32,7 @@ export default function App() {
   const [duplicate, setDuplicate] = useState(false);
   const [welcome, setWelcome] = useState(false);
   const [reminder, setReminder] = useState(false);
+  const [oldBrowser, setOldBrowser] = useState(false);
   const [help, setHelp] = useState(false);
   const [dataOpen, setDataOpen] = useState(false);
   const [syncOpen, setSyncOpen] = useState(false);
@@ -52,10 +54,14 @@ export default function App() {
   }, [theme]);
 
   // Eerste keer: welkom. Daarna: herinnering om te exporteren.
+  const showIntro = () => {
+    if (read(KEYS.introSeen)) setReminder(true);
+    else { setWelcome(true); write(KEYS.introSeen, 'true'); }
+  };
   useEffect(() => {
     const t = setTimeout(() => {
-      if (read(KEYS.introSeen)) setReminder(true);
-      else { setWelcome(true); write(KEYS.introSeen, 'true'); }
+      if (isOldBrowser) setOldBrowser(true); // eerst de waarschuwing, daarna de normale pop-up
+      else showIntro();
     }, 500);
     return () => clearTimeout(t);
   }, []);
@@ -193,6 +199,7 @@ export default function App() {
         onOpenSync={() => { setDataOpen(false); setSyncOpen(true); }}
       />
       <LiveSyncModal open={syncOpen} onClose={() => setSyncOpen(false)} sync={sync} />
+      <OldBrowserModal open={oldBrowser} onClose={() => { setOldBrowser(false); showIntro(); }} />
       <WelcomeModal open={welcome} onClose={() => setWelcome(false)} />
       <HelpModal open={help} onClose={() => setHelp(false)} />
       <ExportReminderModal open={reminder} onClose={() => setReminder(false)} onExport={() => { setReminder(false); exportData(); }} />

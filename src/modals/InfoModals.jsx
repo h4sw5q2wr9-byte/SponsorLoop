@@ -75,6 +75,19 @@ export function HelpModal({ open, onClose }) {
   );
 }
 
+export function OldBrowserModal({ open, onClose }) {
+  return (
+    <Modal open={open} onClose={onClose} dim z="z-[110]">
+      <ModalIcon tone="orange"><AlertTriangle size={24} /></ModalIcon>
+      <h3 className="text-xl font-black text-center text-slate-900 dark:text-white mb-2">Oudere browser</h3>
+      <p className="text-slate-500 dark:text-slate-400 text-center mb-6 font-medium">
+        Je gebruikt een oudere versie van je browser. Update als dat kan, anders kan er soms iets misgaan.
+      </p>
+      <Button onClick={onClose} className="w-full rounded-2xl py-3">OK</Button>
+    </Modal>
+  );
+}
+
 export function ExportReminderModal({ open, onExport, onClose }) {
   return (
     <Modal open={open} onClose={onClose} dim z="z-[100]">

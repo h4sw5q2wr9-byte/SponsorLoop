@@ -57,3 +57,15 @@ describe('kleuren en codes', () => {
     for (let i = 0; i < 200; i++) expect(newCode()).toMatch(/^[A-HJKMNP-Z2-9]{5}$/);
   });
 });
+
+import { detectOldBrowser } from '../src/lib/browser.js';
+
+describe('oude browser herkennen', () => {
+  const modern = { hasModules: true, hasResizeObserver: true, supports: () => true };
+  it('moderne browser is niet oud', () => { expect(detectOldBrowser(modern)).toBe(false); });
+  it('zonder modules, ResizeObserver of nieuwe kleurnotatie is oud', () => {
+    expect(detectOldBrowser({ ...modern, hasModules: false })).toBe(true);
+    expect(detectOldBrowser({ ...modern, hasResizeObserver: false })).toBe(true);
+    expect(detectOldBrowser({ ...modern, supports: () => false })).toBe(true);
+  });
+});
