@@ -6,6 +6,7 @@ import { KEYS, read, write } from '../lib/storage.js';
 const HEARTBEAT_MS = 30000; // stream-pagina ziet zo dat de tracker nog actief is
 const RETRY_MS = 3000;
 const BATCH_MS = 2000; // wijzigingen 2 seconden verzamelen en dan samen versturen
+const FULL_EVERY = 10; // elke 10e hartslag (5 min) de volledige stand sturen: eventuele verschillen herstellen zich
 const RETRY_UNAVAILABLE_MS = 30000; // Firebase weigert: rustig opnieuw proberen
 const FORGOTTEN_AFTER_MS = 24 * 60 * 60 * 1000; // vergeten code na een dag opruimen
 
@@ -56,7 +57,12 @@ export function useLiveSync(classes, goal) {
         method: update.full ? 'PUT' : 'PATCH',
         body: JSON.stringify(update.body),
       });
-      if (res.status === 401 && auth) { lastSent.current = null; setStatus('denied'); return; } // code is van een ander apparaat
+      if (res.status === 401 && auth) {
+        lastSent.current = null;
+        // Kleine update geweigerd? Dan is de code in Firebase waarschijnlijk opgeruimd: alles opnieuw sturen.
+        if (!update.full) { send(target, true); return; }
+        setStatus('denied'); return; // volledige upload geweigerd: code is van een ander apparaat
+      }
       if (!res.ok) throw new FirebaseUnavailable(res.status);
       lastSent.current = { code: target, ...update.snapshot };
       setStatus('ok');
@@ -85,10 +91,11 @@ export function useLiveSync(classes, goal) {
   // Mislukt het, dan wordt de hele stand opnieuw verstuurd.
   useEffect(() => {
     if (!code) return undefined;
-    const beat = () => getAuth()
+    let beats = 0;
+    const beat = () => ((beats += 1) % FULL_EVERY === 0 ? send(code, true) : getAuth()
       .then((auth) => fetch(sessionUrl(code, auth && auth.token, true), { method: 'PATCH', body: JSON.stringify({ seenAt: Date.now() }) }))
       .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); setStatus('ok'); setLastOkAt(Date.now()); write(KEYS.liveSeen, String(Date.now())); })
-      .catch(() => send(code, true));
+      .catch(() => send(code, true)));
     const t = setInterval(beat, HEARTBEAT_MS);
     return () => clearInterval(t);
   }, [code, send]);

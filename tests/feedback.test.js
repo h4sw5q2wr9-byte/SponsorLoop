@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toIssue } from '../scripts/feedback-to-issues.mjs';
+import { staleCodes, toIssue } from '../scripts/maintenance.mjs';
 
 describe('melding → GitHub-issue', () => {
   it('maakt een duidelijke titel en tekst', () => {
@@ -21,5 +21,14 @@ describe('melding → GitHub-issue', () => {
     expect(i.title.length).toBeLessThanOrEqual(80);
     expect(i.title).not.toMatch(/@iemand/);
     expect(i.body).not.toMatch(/#12/);
+  });
+});
+
+describe('oude Live Sync-codes opruimen', () => {
+  const now = 10 * 86400000;
+  it('alleen codes die langer dan een dag niet actief zijn', () => {
+    const sessions = { ACTIEF: { seenAt: now - 60000 }, OUD: { seenAt: now - 2 * 86400000 }, LEEG: {}, NIEUW: { updatedAt: now - 1000 } };
+    expect(staleCodes(sessions, now).sort()).toEqual(['LEEG', 'OUD']);
+    expect(staleCodes(null, now)).toEqual([]);
   });
 });

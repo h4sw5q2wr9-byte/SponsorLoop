@@ -23,7 +23,8 @@ oude codes op (bij een nieuwe code of na een dag). Alles opruimen kan veilig met
 ## Feedback en problemen
 In de app (Beheer → ? → *Idee of probleem melden*, en op de stream-pagina in het info-venster) kunnen gebruikers
 een idee of probleem sturen. Dat komt in Firebase (`/feedback`, niet leesbaar voor anderen) en wordt elk half uur
-door `.github/workflows/feedback.yml` omgezet in een **GitHub-issue** (label `idee` of `bug`). Nodig: het secret
+door `.github/workflows/maintenance.yml` omgezet in een **GitHub-issue** (label `idee` of `bug`). Dezelfde taak ruimt
+Live Sync-codes op die langer dan een dag niet actief zijn. Nodig: het secret
 `FIREBASE_SERVICE_ACCOUNT` (service-account JSON uit Firebase). Let op: issues in een openbare repo zijn openbaar.
 
 ## Ontwikkelen

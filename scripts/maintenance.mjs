@@ -1,9 +1,19 @@
-// Zet meldingen uit de app (Firebase /feedback) om in GitHub-issues en verwijdert ze daarna uit Firebase.
-// Draait via .github/workflows/feedback.yml. Nodig: secret FIREBASE_SERVICE_ACCOUNT.
+// Onderhoud, elk half uur via .github/workflows/maintenance.yml (nodig: secret FIREBASE_SERVICE_ACCOUNT):
+//  1. Meldingen uit de app (Firebase /feedback) omzetten in GitHub-issues en daarna uit Firebase verwijderen.
+//  2. Live Sync-codes opruimen die langer dan een dag niet actief zijn. Veilig: de echte gegevens staan
+//     op het tracker-apparaat; Firebase is alleen doorgeefluik. Een actieve tracker stuurt zo nodig alles opnieuw.
 import { createSign } from 'node:crypto';
 
 const DB_URL = 'https://sponsorloop-1eb58-default-rtdb.europe-west1.firebasedatabase.app';
 const MAX_PER_RUN = 10; // bescherming tegen spam
+export const MAX_AGE_MS = 24 * 60 * 60 * 1000; // codes ouder dan een dag opruimen
+
+/** Welke codes zijn verouderd? (puur, getest) */
+export function staleCodes(sessions, now = Date.now(), maxAge = MAX_AGE_MS) {
+  return Object.entries(sessions || {})
+    .filter(([, s]) => !s || typeof s !== 'object' || !(Number(s.seenAt || s.updatedAt) > now - maxAge))
+    .map(([code]) => code);
+}
 
 const TYPES = {
   idee: { emoji: '💡', label: 'Idee', ghLabel: 'idee', color: 'fbca04' },
@@ -81,6 +91,22 @@ async function main() {
     await fetch(`${DB_URL}/feedback/${id}.json`, { method: 'DELETE', headers: auth });
   }
   if (items.length > MAX_PER_RUN) console.log(`${items.length - MAX_PER_RUN} melding(en) volgen bij de volgende ronde.`);
+
+  // 2. Oude Live Sync-codes opruimen
+  const s = await fetch(`${DB_URL}/sessions.json`, { headers: auth });
+  if (!s.ok) throw new Error(`Codes ophalen mislukt: HTTP ${s.status}`);
+  const sessions = (await s.json()) || {};
+  const stale = staleCodes(sessions);
+  console.log(`${Object.keys(sessions).length} Live Sync-code(s), ${stale.length} verouderd.`);
+  if (stale.length) {
+    const del = await fetch(`${DB_URL}/sessions.json`, {
+      method: 'PATCH',
+      headers: { ...auth, 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.fromEntries(stale.map((c) => [c, null]))),
+    });
+    if (!del.ok) throw new Error(`Opruimen mislukt: HTTP ${del.status}`);
+    console.log(`Opgeruimd: ${stale.join(', ')}`);
+  }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

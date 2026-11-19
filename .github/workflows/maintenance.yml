@@ -1,4 +1,4 @@
-name: Feedback naar issues
+name: Onderhoud (feedback + opruimen)
 
 on:
   schedule:
@@ -10,7 +10,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: feedback
+  group: maintenance
   cancel-in-progress: false
 
 jobs:
@@ -21,8 +21,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Meldingen omzetten in issues
-        run: node scripts/feedback-to-issues.mjs
+      - name: Meldingen naar issues + oude codes opruimen
+        run: node scripts/maintenance.mjs
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
