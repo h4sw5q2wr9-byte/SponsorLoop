@@ -30,19 +30,39 @@ Hoe het werkt (`src/hooks/useLiveSync.js`, `src/lib/liveFeed.js`):
 
 ### Embed (scorebord op een andere website)
 Op de stream-pagina geeft **🔗 Embed** een kant-en-klare `<iframe>` met de huidige code
-(`stream.html?code=ABCDE&view=embed`, optioneel `&theme=dark` of `&bg=transparent`). Het scorebord opent direct,
-zonder menu of code invullen, en past zich aan de breedte aan. Start je een nieuwe Live Sync-code, dan moet de embed
-opnieuw gekopieerd worden.
+(`stream.html?code=ABCDE&view=embed`). Het scorebord opent direct, zonder menu of code invullen, en past zich aan de
+breedte aan (telefoon en desktop). Zie ook pagina 9 van de handleiding.
 
-Kijkers zien eerst een startscherm en verbinden pas na een klik op *Bekijk de live stand*. Na 10 minuten zonder
-interactie pauzeert het scorebord (*Opnieuw verbinden*). Lukt het niet, dan staat er waarom: Live Sync uit/code verlopen,
-er wordt niet geteld, geen internet, of te druk (dan rustig opnieuw proberen na 15, 30, 60 s).
+```html
+<iframe src="https://h4sw5q2wr9-byte.github.io/SponsorLoop/stream.html?code=ABCDE&view=embed"
+  title="Sponsorloop live stand" loading="lazy"
+  style="display:block;width:100%;max-width:900px;height:640px;margin:0 auto;border:0;border-radius:16px"></iframe>
+```
+Opties: `&theme=dark` (donker) of `&bg=transparent` (doorzichtige achtergrond).
+**Start je een nieuwe Live Sync-code, dan moet de embed opnieuw gekopieerd en op de website bijgewerkt worden.**
 
-Zuinig met Firebase (`src/stream/embed.js`): één live verbinding per kijker die alleen wijzigingen ontvangt
-(gemeten: ~1,1 KB bij openen, ~22 bytes per tik, ~160 bytes per minuut stil). De verbinding sluit als het tabblad
-verborgen is (na 10 s) of het scorebord uit beeld is gescrold (na 30 s) en opent weer zodra iemand kijkt.
+Voor bezoekers:
+- Eerst een **startscherm**; pas na een klik op *Bekijk de live stand* wordt verbonden (langs scrollen kost niets).
+- Na **10 minuten** zonder interactie pauzeert het scorebord (*Opnieuw verbinden*); klikken of scrollen in het
+  scorebord stelt dit uit.
+- **Meldingen met de reden:** Live Sync uit of code verlopen, er wordt niet geteld, geen internet, of te druk
+  (dan rustig opnieuw proberen na 15, 30 en 60 s, met een knop *Nu opnieuw*).
+
+Zuinig met Firebase (`src/stream/embed.js`), gemeten:
+
+| Moment | Firebase per kijker |
+|---|---|
+| Voor de klik | 0 bytes, 0 verbindingen |
+| Bij verbinden | ~1,1 KB (hele stand, één keer) |
+| Per tik | ~22 bytes (alleen klasnummer + aantal, ongeacht de lengte van de naam; tikken per 2 s gebundeld) |
+| Stil (hartslag) | ~160 bytes per minuut |
+| Veiligheids-verversing (elke 5 min) | alleen aantallen, geen namen |
+
+De verbinding sluit als het tabblad verborgen is (na 10 s) of het scorebord uit beeld is gescrold (na 30 s) en
+opent weer zodra iemand kijkt. Websitebestanden komen van GitHub Pages (~130 KB eerste bezoek, daarna uit de cache).
 Let op: het gratis Spark-abonnement staat **maximaal 100 gelijktijdige verbindingen** toe. Verwacht je meer
-gelijktijdige kijkers, zet het Firebase-project dan op Blaze (zelfde code, ruim binnen de gratis 10 GB/maand).
+gelijktijdige kijkers, zet het Firebase-project dan op Blaze (zelfde code; het dataverbruik blijft ruim binnen de
+gratis 10 GB/maand).
 
 ### Beveiliging
 - De tracker logt **anoniem** in (Firebase Authentication → Anonymous). Alleen de tracker die een code start, kan die
