@@ -78,6 +78,9 @@ export function subscribe(code, onData, onStatus, { pollMs = 2000 } = {}) {
     es.addEventListener('cancel', () => onStatus('unavailable')); // Firebase weigert (regels of limiet)
     es.onerror = () => {
       if (stopped) return;
+      // Door de server geweigerd (bijv. te druk): de browser probeert dan niet meer zelf opnieuw.
+      // Meteen terugvallen op ophalen, dat herkent "niet beschikbaar" en probeert het opnieuw.
+      if (es.readyState === 2) { es.close(); es = null; startPolling(); return; }
       onStatus('error');
       failures += 1;
       // Lukt de live verbinding steeds niet? Dan terugvallen op ophalen.

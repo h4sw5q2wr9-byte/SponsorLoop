@@ -34,6 +34,10 @@ Op de stream-pagina geeft **🔗 Embed** een kant-en-klare `<iframe>` met de hui
 zonder menu of code invullen, en past zich aan de breedte aan. Start je een nieuwe Live Sync-code, dan moet de embed
 opnieuw gekopieerd worden.
 
+Kijkers zien eerst een startscherm en verbinden pas na een klik op *Bekijk de live stand*. Na 10 minuten zonder
+interactie pauzeert het scorebord (*Opnieuw verbinden*). Lukt het niet, dan staat er waarom: Live Sync uit/code verlopen,
+er wordt niet geteld, geen internet, of te druk (dan rustig opnieuw proberen na 15, 30, 60 s).
+
 Zuinig met Firebase (`src/stream/embed.js`): één live verbinding per kijker die alleen wijzigingen ontvangt
 (gemeten: ~1,1 KB bij openen, ~22 bytes per tik, ~160 bytes per minuut stil). De verbinding sluit als het tabblad
 verborgen is (na 10 s) of het scorebord uit beeld is gescrold (na 30 s) en opent weer zodra iemand kijkt.
