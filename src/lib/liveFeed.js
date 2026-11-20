@@ -44,7 +44,7 @@ export function applyEvent(current, type, { path, data }) {
  * Abonneer op een code. onData(data) bij elke wijziging, onStatus('ok' | 'error').
  * Geeft een functie terug om te stoppen.
  */
-export function subscribe(code, onData, onStatus) {
+export function subscribe(code, onData, onStatus, { pollMs = 2000 } = {}) {
   let stopped = false;
   let data = null;
   let es = null;
@@ -60,7 +60,7 @@ export function subscribe(code, onData, onStatus) {
         .then((r) => { if (!r.ok) { const e = new Error(`HTTP ${r.status}`); e.unavailable = true; throw e; } return r.json(); })
         .then(emit)
         .catch((e) => !stopped && onStatus(e && e.unavailable ? 'unavailable' : 'error'))
-        .then(() => { if (!stopped) pollTimer = setTimeout(tick, 2000); }, () => { if (!stopped) pollTimer = setTimeout(tick, 2000); });
+        .then(() => { if (!stopped) pollTimer = setTimeout(tick, pollMs); }, () => { if (!stopped) pollTimer = setTimeout(tick, pollMs); });
     };
     tick();
   }

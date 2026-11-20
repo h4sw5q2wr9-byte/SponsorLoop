@@ -28,6 +28,18 @@ Hoe het werkt (`src/hooks/useLiveSync.js`, `src/lib/liveFeed.js`):
 - De stream-pagina krijgt wijzigingen **gepusht** (Firebase streaming) en valt terug op elke 2 s ophalen.
 - Offline doortellen kan; bij herstel van de verbinding wordt alles bijgewerkt.
 
+### Embed (scorebord op een andere website)
+Op de stream-pagina geeft **🔗 Embed** een kant-en-klare `<iframe>` met de huidige code
+(`stream.html?code=ABCDE&view=embed`, optioneel `&theme=dark` of `&bg=transparent`). Het scorebord opent direct,
+zonder menu of code invullen, en past zich aan de breedte aan. Start je een nieuwe Live Sync-code, dan moet de embed
+opnieuw gekopieerd worden.
+
+Zuinig met Firebase (`src/stream/embed.js`): één live verbinding per kijker die alleen wijzigingen ontvangt
+(gemeten: ~1,1 KB bij openen, ~22 bytes per tik, ~160 bytes per minuut stil). De verbinding sluit als het tabblad
+verborgen is (na 10 s) of het scorebord uit beeld is gescrold (na 30 s) en opent weer zodra iemand kijkt.
+Let op: het gratis Spark-abonnement staat **maximaal 100 gelijktijdige verbindingen** toe. Verwacht je meer
+gelijktijdige kijkers, zet het Firebase-project dan op Blaze (zelfde code, ruim binnen de gratis 10 GB/maand).
+
 ### Beveiliging
 - De tracker logt **anoniem** in (Firebase Authentication → Anonymous). Alleen de tracker die een code start, kan die
   wijzigen of verwijderen; kijkers kunnen alleen lezen. De lijst met codes is niet op te vragen.

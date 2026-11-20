@@ -1,5 +1,6 @@
 import './stream.css';
 import { subscribe } from '../lib/liveFeed.js';
+import { startEmbed } from './embed.js';
 import { collectInfo, submitFeedback } from '../lib/feedback.js';
 import { standings } from '../lib/standings.js';
 
@@ -53,6 +54,7 @@ var I = {
   radio: function (s) { return svg('<path d="M4.9 19.1a10 10 0 0 1 0-14.2M7.8 16.2a6 6 0 0 1 0-8.4M16.2 7.8a6 6 0 0 1 0 8.4M19.1 4.9a10 10 0 0 1 0 14.2"/><circle cx="12" cy="12" r="2"/>', s); },
   play: svg('<polygon points="6 3 20 12 6 21 6 3"/>', 18),
   copy: svg('<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>', 18),
+  link: svg('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>', 18),
   back: svg('<path d="m15 18-6-6 6-6"/>', 18),
   trophy: function (s) { return svg('<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2z"/>', s); }
 };
@@ -120,6 +122,27 @@ function infoModal() {
     '<p class="pt-2 text-slate-400">Onthulling start met ' + kbd('Spatie') + ' of een klik, daarna gaat alles vanzelf. Stoppen met ' + kbd('Esc') + ' of het kruisje (beweeg de muis).</p>' +
     '<p class="text-slate-400">De OBS-link werkt als browserbron met doorzichtige achtergrond.</p>' +
     '</div>' + feedbackForm() + '</div></div>';
+}
+
+// Embed: kant-en-klare iframe-code voor een andere website
+function embedCode() {
+  var url = location.origin + location.pathname + '?code=' + encodeURIComponent(S.code) + '&view=embed';
+  return '<iframe src="' + url + '" title="Sponsorloop live stand" loading="lazy" ' +
+    'style="display:block;width:100%;max-width:900px;height:640px;margin:0 auto;border:0;border-radius:16px"></iframe>';
+}
+function embedModal() {
+  if (!S.embed) return '';
+  return '<div data-a="embed-bg" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-md">' +
+    '<div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-[2rem] shadow-2xl p-6 border border-white dark:border-slate-700 max-h-[90vh] overflow-y-auto no-scrollbar">' +
+    '<div class="flex justify-between items-center mb-4"><h3 class="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">' + I.link + ' Embed</h3>' +
+    '<button data-a="embed" aria-label="Sluiten" class="text-slate-400 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">' + I.x + '</button></div>' +
+    '<p class="text-sm text-slate-600 dark:text-slate-300 font-medium mb-3">Plak deze code op een website (bijv. als HTML-blok). Het scorebord opent direct, zonder menu of code invullen.</p>' +
+    '<textarea id="embedCode" readonly rows="5" class="w-full font-mono text-xs bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-2xl p-3 outline-none resize-none select-all">' + esc(embedCode()) + '</textarea>' +
+    '<div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-900/30 rounded-2xl p-3 my-3 text-sm font-bold text-orange-800 dark:text-orange-200">' +
+    'Als je een nieuwe Live Sync-code start, moet je de embed opnieuw kopiëren en bijwerken op de website.</div>' +
+    '<button data-a="embed-copy" class="' + C.primary + ' w-full">' + I.copy + (S.embedCopied ? ' Gekopieerd!' : ' Code kopiëren') + '</button>' +
+    '<a href="' + esc(embedCode().match(/src="([^"]+)"/)[1]) + '" target="_blank" rel="noopener" class="block text-center text-sm font-bold text-blue-600 dark:text-blue-400 mt-3">Voorbeeld openen</a>' +
+    '</div></div>';
 }
 
 // Feedback / probleem melden (komt als issue in de GitHub-repository)
@@ -194,7 +217,10 @@ function viewPreview() {
     modeBtn('show', I.trophy(26), 'Onthulling', 'Wie heeft er gewonnen? Eerst de top ' + PODIUM + ', dan de rest.', true) +
     modeBtn('live', I.radio(26), 'Live stand', 'Kijk live mee tijdens het lopen.', false) +
     '</div>' +
-    '<button data-a="copy" class="' + C.secondary + ' w-full">' + I.copy + (S.copied ? ' Gekopieerd!' : ' OBS-link kopiëren') + '</button>' +
+    '<div class="grid grid-cols-2 gap-3">' +
+    '<button data-a="copy" class="' + C.secondary + '">' + I.copy + (S.copied ? ' Gekopieerd!' : ' OBS-link') + '</button>' +
+    '<button data-a="embed" class="' + C.secondary + '">' + I.link + ' Embed</button>' +
+    '</div>' +
     '<p class="text-center text-xs text-slate-400 font-medium mt-4 leading-relaxed">Stoppen met ' + kbd('Esc') + ' of het kruisje.</p>' +
     '</main>';
 }
@@ -503,7 +529,7 @@ function confetti() {
 function render() {
   if (S.view === 'show' || S.view === 'live') return;
   var focusCode = document.activeElement && document.activeElement.id === 'codeIn';
-  app.innerHTML = (S.view === 'connect' ? viewConnect() : viewPreview()) + infoModal();
+  app.innerHTML = (S.view === 'connect' ? viewConnect() : viewPreview()) + infoModal() + embedModal();
   S.anim = false;
   if (S.view === 'connect') { var inp = document.getElementById('codeIn'); if (inp && (focusCode || !S.info)) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } }
   var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.setAttribute('content', isDark() ? '#0f172a' : '#f8fafc');
@@ -553,7 +579,7 @@ document.addEventListener('keydown', function (e) {
     else if (e.key === 'Escape') exitShow();
     return;
   }
-  if (e.key === 'Escape' && S.info) { S.info = false; render(); }
+  if (e.key === 'Escape' && (S.info || S.embed)) { S.info = false; S.embed = false; render(); }
 });
 
 app.addEventListener('submit', function (e) { e.preventDefault(); connect(document.getElementById('codeIn').value); });
@@ -585,6 +611,15 @@ app.addEventListener('click', function (e) {
   else if (a === 'back') { stopFeedNow(); S.view = 'connect'; S.data = null; S.anim = true; setUrl(); render(); }
   else if (a === 'show') startShow();
   else if (a === 'live') startLive();
+  else if (a === 'embed' || a === 'embed-bg') { if (a === 'embed-bg' && t !== e.target) return; S.embed = !S.embed; S.embedCopied = false; render(); }
+  else if (a === 'embed-copy') {
+    var code = embedCode();
+    (navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject()).catch(function () {
+      var ta = document.getElementById('embedCode'); if (ta) { ta.select(); try { document.execCommand('copy'); } catch (er) { /* handmatig kopiëren */ } }
+    });
+    S.embedCopied = true; render();
+    setTimeout(function () { S.embedCopied = false; if (S.embed) render(); }, 1800);
+  }
   else if (a === 'copy') {
     var url = location.origin + location.pathname + '?code=' + S.code + '&view=live&bg=transparent';
     (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).catch(function () { prompt('Kopieer deze link:', url); });
@@ -594,6 +629,7 @@ app.addEventListener('click', function (e) {
 setInterval(function () { if (S.view === 'preview' && S.data) render(); }, 15000);
 
 // ---------- start ----------
-if (S.code && S.obs) { startLive(); startFeed(); }
+if (S.code && params.get('view') === 'embed') { startEmbed(app, S.code, params); }
+else if (S.code && S.obs) { startLive(); startFeed(); }
 else if (S.code) { S.view = 'preview'; render(); startFeed(); }
 else render();
