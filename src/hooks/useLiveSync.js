@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { buildUpdate, FirebaseUnavailable, newCode, sessionUrl } from '../lib/firebase.js';
+import { buildRefresh, buildUpdate, FirebaseUnavailable, newCode, sessionUrl } from '../lib/firebase.js';
 import { getAuth } from '../lib/firebaseAuth.js';
 import { KEYS, read, write } from '../lib/storage.js';
 
 const HEARTBEAT_MS = 30000; // stream-pagina ziet zo dat de tracker nog actief is
 const RETRY_MS = 3000;
 const BATCH_MS = 2000; // wijzigingen 2 seconden verzamelen en dan samen versturen
-const FULL_EVERY = 10; // elke 10e hartslag (5 min) de volledige stand sturen: eventuele verschillen herstellen zich
+const FULL_EVERY = 10; // elke 10e hartslag (5 min) alle aantallen opnieuw sturen (zonder namen): verschillen herstellen zich
 const RETRY_UNAVAILABLE_MS = 30000; // Firebase weigert: rustig opnieuw proberen
 const FORGOTTEN_AFTER_MS = 24 * 60 * 60 * 1000; // vergeten code na een dag opruimen
 
@@ -52,7 +52,9 @@ export function useLiveSync(classes, goal) {
     clearTimeout(retry.current);
     if (!target) return;
     if (busy.current) {
-      again.current = { target, force: force || (again.current && again.current.force) };
+      const queued = again.current && again.current.force;
+      // 'alles opnieuw' (true) gaat altijd voor op 'verversen' ('refresh')
+      again.current = { target, force: force === true || queued === true ? true : (force || queued) };
       return;
     }
     busy.current = true;
@@ -67,7 +69,9 @@ export function useLiveSync(classes, goal) {
   const upload = async (target, force) => {
     const { classes: cl, goal: g } = latest.current;
     const prev = !force && lastSent.current && lastSent.current.code === target ? lastSent.current : null;
-    const update = buildUpdate(prev, cl, g, Date.now());
+    const update = force === 'refresh'
+      ? buildRefresh(lastSent.current && lastSent.current.code === target ? lastSent.current : null, cl, g, Date.now())
+      : buildUpdate(prev, cl, g, Date.now());
     if (!update) return; // niets nieuws
     try {
       const auth = await getAuth(); // null als inloggen uit staat
@@ -111,7 +115,7 @@ export function useLiveSync(classes, goal) {
   useEffect(() => {
     if (!code) return undefined;
     let beats = 0;
-    const beat = () => ((beats += 1) % FULL_EVERY === 0 ? send(code, true) : getAuth()
+    const beat = () => ((beats += 1) % FULL_EVERY === 0 ? send(code, 'refresh') : getAuth()
       .then((auth) => fetch(sessionUrl(code, auth && auth.token, true), { method: 'PATCH', body: JSON.stringify({ seenAt: Date.now() }) }))
       .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); setStatus('ok'); setLastOkAt(Date.now()); write(KEYS.liveSeen, String(Date.now())); })
       .catch(() => send(code, true)));

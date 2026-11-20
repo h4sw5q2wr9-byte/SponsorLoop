@@ -132,3 +132,21 @@ describe('live feed: kleine updates', () => {
     expect(r).toEqual({ classes: [{ name: 'A', laps: 1 }, { name: 'B', laps: 7 }], updatedAt: 2 });
   });
 });
+
+import { buildRefresh } from '../src/lib/firebase.js';
+
+describe('veiligheids-verversing zonder namen', () => {
+  const cls = [{ name: 'Een hele lange klasnaam die veel bytes kost', laps: 4, color: '#f00' }, { name: 'B', laps: 2, color: '#0f0' }];
+  it('stuurt alleen aantallen, geen namen of kleuren', () => {
+    const prev = buildUpdate(null, cls, 10, 1).snapshot;
+    const u = buildRefresh(prev, cls, 10, 2);
+    expect(u.full).toBe(false);
+    expect(u.body).toEqual({ 'classes/0/laps': 4, 'classes/1/laps': 2, schoolGoal: 10, updatedAt: 2, seenAt: 2 });
+    expect(JSON.stringify(u.body)).not.toContain('lange');
+  });
+  it('lijst veranderd of onbekend: alles sturen', () => {
+    expect(buildRefresh(null, cls, 10, 2).full).toBe(true);
+    const prev = buildUpdate(null, cls, 10, 1).snapshot;
+    expect(buildRefresh(prev, [cls[0]], 10, 2).full).toBe(true);
+  });
+});

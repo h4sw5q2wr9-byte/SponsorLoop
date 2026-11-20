@@ -25,6 +25,23 @@ export class FirebaseUnavailable extends Error {
   constructor(status) { super(`Firebase HTTP ${status}`); this.status = status; this.unavailable = true; }
 }
 
+/**
+ * Veiligheids-verversing: alle aantallen opnieuw sturen, maar zonder namen en kleuren (die zijn
+ * niet veranderd). Klopt de lijst niet meer met de vorige keer, dan alles (buildUpdate).
+ */
+export function buildRefresh(prev, classes, goal, now) {
+  const full = buildUpdate(null, classes, goal, now);
+  const sameShape = prev && prev.classes.length === full.snapshot.classes.length &&
+    full.snapshot.classes.every((c, i) => c.name === prev.classes[i].name && c.color === prev.classes[i].color);
+  if (!sameShape) return full;
+  const patch = {};
+  full.snapshot.classes.forEach((c, i) => { patch[`classes/${i}/laps`] = c.laps; });
+  patch.schoolGoal = goal || null;
+  patch.updatedAt = now;
+  patch.seenAt = now;
+  return { full: false, body: patch, snapshot: full.snapshot };
+}
+
 /** Bepaal wat er verstuurd moet worden: alleen wijzigingen (klein) of alles (na een andere wijziging). */
 export function buildUpdate(prev, classes, goal, now) {
   const list = classes.map(({ name, laps, color }) => ({ name, laps, color }));
