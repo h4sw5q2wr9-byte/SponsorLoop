@@ -2,6 +2,7 @@
 
 📄 **Handleiding (PDF):** [docs/Sponsorloop-Tracker-Handleiding.pdf](docs/Sponsorloop-Tracker-Handleiding.pdf)
 🌐 **Site:** https://h4sw5q2wr9-byte.github.io/SponsorLoop/
+📜 **Project history:** [docs/PROJECT-HISTORY.md](docs/PROJECT-HISTORY.md)
 
 Rondjes tellen tijdens de sponsorloop, met een live stand en een onthulling voor op het grote scherm.
 Gemaakt door Tijn van Kemenade.
