@@ -17,6 +17,7 @@ backup (Beheer → Data & Beheer → Exporteren). Een klassenlijst staat in [`te
 
 ## Live Sync
 1. Tracker: **Beheer → Data & Beheer → Live Sync → Start Sync** (staat bij openen altijd uit).
+   Of **Eigen code kiezen** (6–12 letters/cijfers, bijv. `SPONSOR26`): handig voor een embed, die hoeft dan nooit aangepast.
 2. Ander scherm: open `stream.html` en vul de code in.
 3. Kies **Live stand** of **Onthulling**. Stoppen: Esc of het kruisje (verschijnt bij muisbeweging).
 
@@ -40,7 +41,8 @@ breedte aan (telefoon en desktop). Zie ook pagina 9 van de handleiding.
   style="display:block;width:100%;max-width:900px;height:640px;margin:0 auto;border:0;border-radius:16px"></iframe>
 ```
 Opties: `&theme=dark` (donker) of `&bg=transparent` (doorzichtige achtergrond).
-**Start je een nieuwe Live Sync-code, dan moet de embed opnieuw gekopieerd en op de website bijgewerkt worden.**
+**Tip:** gebruik een eigen code, dan blijft de embed altijd werken. Met een willekeurige code moet de embed na een nieuwe code
+opnieuw gekopieerd worden.
 
 Voor bezoekers:
 - Eerst een **startscherm**; pas na een klik op *Bekijk de live stand* wordt verbonden (langs scrollen kost niets).
@@ -68,6 +70,8 @@ gratis 10 GB/maand).
 ### Beveiliging
 - De tracker logt **anoniem** in (Firebase Authentication → Anonymous). Alleen de tracker die een code start, kan die
   wijzigen of verwijderen; kijkers kunnen alleen lezen. De lijst met codes is niet op te vragen.
+- **Eigen code overnemen:** een andere tracker mag een code pas overnemen als de vorige eigenaar **15 minuten** niets
+  heeft gestuurd (bijv. het tel-apparaat is kapot). De oude tracker ziet dan *Andere tracker*.
 - Regels: [`docs/firebase-rules.json`](docs/firebase-rules.json) (plakken bij Realtime Database → Rules).
 - De Web API key in `src/lib/firebase.js` is niet geheim; de beveiliging zit in de regels.
 
@@ -75,7 +79,7 @@ gratis 10 GB/maand).
 - In de app (Beheer → ? → *Idee of probleem melden*, op de stream-pagina in het info-venster, en in foutmeldingen)
   kan iedereen een idee of probleem sturen. Dat komt in Firebase (`/feedback`, voor niemand leesbaar).
 - [`.github/workflows/maintenance.yml`](.github/workflows/maintenance.yml) draait **elk half uur**:
-  meldingen worden **GitHub-issues** (label `idee` of `bug`) en Live Sync-codes die langer dan een dag niet actief
+  meldingen worden **GitHub-issues** (label `idee` of `bug`) en Live Sync-codes die langer dan twee dagen niet actief
   zijn worden opgeruimd. Een melding wordt pas uit Firebase verwijderd als het issue gemaakt is.
 - Nodig: GitHub-secret `FIREBASE_SERVICE_ACCOUNT` (service-account JSON uit Firebase, **geheim**).
 - Issues in een openbare repo zijn openbaar; het formulier waarschuwt hiervoor.
