@@ -59,6 +59,12 @@ export function buildUpdate(prev, classes, goal, now) {
   return { full: false, body: patch, snapshot: { classes: list, goal: goal || null } };
 }
 
+/** Eigen code: 6 tot 12 letters of cijfers (hoofdletters). Geeft de nette code terug, of null. */
+export function cleanCustomCode(input) {
+  const c = String(input || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  return c.length >= 6 && c.length <= 12 ? c : null;
+}
+
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // zonder 0/O en 1/I/L
 export function newCode(length = 5) {
   let s = '';

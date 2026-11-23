@@ -139,7 +139,7 @@ function embedModal() {
     '<p class="text-sm text-slate-600 dark:text-slate-300 font-medium mb-3">Plak deze code op een website (bijv. als HTML-blok). Het scorebord opent direct, zonder menu of code invullen.</p>' +
     '<textarea id="embedCode" readonly rows="5" class="w-full font-mono text-xs bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-2xl p-3 outline-none resize-none select-all">' + esc(embedCode()) + '</textarea>' +
     '<div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-900/30 rounded-2xl p-3 my-3 text-sm font-bold text-orange-800 dark:text-orange-200">' +
-    'Als je een nieuwe Live Sync-code start, moet je de embed opnieuw kopiëren en bijwerken op de website.</div>' +
+    'Tip: kies in de tracker een <b>eigen code</b> (Live Sync → Eigen code kiezen). Dan blijft deze embed altijd werken, ook op een ander apparaat.</div>' +
     '<button data-a="embed-copy" class="' + C.primary + ' w-full">' + I.copy + (S.embedCopied ? ' Gekopieerd!' : ' Code kopiëren') + '</button>' +
     '<a href="' + esc(embedCode().match(/src="([^"]+)"/)[1]) + '" target="_blank" rel="noopener" class="block text-center text-sm font-bold text-blue-600 dark:text-blue-400 mt-3">Voorbeeld openen</a>' +
     '</div></div>';
@@ -179,7 +179,7 @@ function viewConnect() {
     '<h2 class="text-xl font-black text-center text-slate-900 dark:text-white mb-2">Vul de code in</h2>' +
     '<p class="text-slate-500 dark:text-slate-400 text-center mb-6 font-medium text-sm">Te vinden bij <strong>Live Sync</strong> in de tracker.</p>' +
     '<form data-f="connect" class="flex flex-col gap-3">' +
-    '<input id="codeIn" value="' + esc(S.code) + '" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCDE" ' +
+    '<input id="codeIn" value="' + esc(S.code) + '" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCDE" ' +
     'class="code-input w-full text-center text-3xl font-black uppercase py-4 rounded-2xl bg-slate-50 dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 outline-none text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors">' +
     (S.error ? '<p class="text-sm text-center font-bold text-red-500">' + esc(S.error) + '</p>' : '') +
     '<button type="submit" class="' + C.primary + ' w-full py-4 text-lg">Verbinden</button>' +
@@ -554,7 +554,7 @@ function startFeed() {
 function stopFeedNow() { if (stopFeed) { stopFeed(); stopFeed = null; } }
 function connect(code) {
   code = (code || '').trim().toUpperCase();
-  if (!/^[A-Z0-9]{4,8}$/.test(code)) { S.error = 'Vul de code van 5 tekens in.'; render(); return; }
+  if (!/^[A-Z0-9]{5,12}$/.test(code)) { S.error = 'Vul de code in (5 tot 12 tekens).'; render(); return; }
   S.code = code; S.error = ''; S.data = null; S.net = 'idle'; S.view = 'preview'; S.anim = true;
   setUrl(); render(); startFeed();
 }

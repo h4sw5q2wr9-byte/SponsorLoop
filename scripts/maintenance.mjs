@@ -6,7 +6,7 @@ import { createSign } from 'node:crypto';
 
 const DB_URL = 'https://sponsorloop-1eb58-default-rtdb.europe-west1.firebasedatabase.app';
 const MAX_PER_RUN = 10; // bescherming tegen spam
-export const MAX_AGE_MS = 24 * 60 * 60 * 1000; // codes ouder dan een dag opruimen
+export const MAX_AGE_MS = 2 * 24 * 60 * 60 * 1000; // codes die twee dagen niet actief zijn opruimen
 
 /** Welke codes zijn verouderd? (puur, getest) */
 export function staleCodes(sessions, now = Date.now(), maxAge = MAX_AGE_MS) {

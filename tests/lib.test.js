@@ -168,3 +168,14 @@ describe('schooldoel opschonen', () => {
     expect(goalPercent(10, NaN)).toBe(0);
   });
 });
+
+import { cleanCustomCode } from '../src/lib/firebase.js';
+describe('cleanCustomCode', () => {
+  it('accepteert 6 tot 12 letters/cijfers en maakt hoofdletters', () => {
+    expect(cleanCustomCode('sponsor26')).toBe('SPONSOR26');
+    expect(cleanCustomCode('ab-cd ef')).toBe('ABCDEF');
+    expect(cleanCustomCode('ABCDE')).toBeNull();
+    expect(cleanCustomCode('ABCDEFGHIJKLM')).toBeNull();
+    expect(cleanCustomCode('')).toBeNull();
+  });
+});

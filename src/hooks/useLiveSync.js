@@ -8,7 +8,7 @@ const RETRY_MS = 3000;
 const BATCH_MS = 2000; // wijzigingen 2 seconden verzamelen en dan samen versturen
 const FULL_EVERY = 10; // elke 10e hartslag (5 min) alle aantallen opnieuw sturen (zonder namen): verschillen herstellen zich
 const RETRY_UNAVAILABLE_MS = 30000; // Firebase weigert: rustig opnieuw proberen
-const FORGOTTEN_AFTER_MS = 24 * 60 * 60 * 1000; // vergeten code na een dag opruimen
+const FORGOTTEN_AFTER_MS = 2 * 24 * 60 * 60 * 1000; // vergeten code na twee dagen opruimen
 
 /** Verwijdert een code uit Firebase (alleen mogelijk voor de eigen tracker). */
 function removeCode(c) {
@@ -24,7 +24,7 @@ function removeCode(c) {
 export function useLiveSync(classes, goal) {
   const [code, setCode] = useState(null);
   const [prevCode, setPrevCode] = useState(() => {
-    // Code van meer dan een dag geleden die nooit gestopt is? Stil opruimen.
+    // Code van meer dan twee dagen geleden die nooit gestopt is? Stil opruimen.
     const old = read(KEYS.liveCode);
     const seen = Number(read(KEYS.liveSeen)) || 0;
     if (old && Date.now() - seen > FORGOTTEN_AFTER_MS) {
@@ -123,9 +123,12 @@ export function useLiveSync(classes, goal) {
     return () => clearInterval(t);
   }, [code, send]);
 
-  const start = useCallback((reuse = false) => {
-    const c = reuse && prevCode ? prevCode : newCode();
-    if (!reuse && prevCode) removeCode(prevCode); // oude code van dit apparaat opruimen
+  // start(true) = verder met de vorige code, start(false) = nieuwe code, start(false, 'EIGEN01') = eigen code.
+  // Een eigen code die op een ander apparaat in gebruik is, mag pas na 15 minuten stilte overgenomen worden (Firebase-regels).
+  const start = useCallback((reuse = false, custom = null) => {
+    const c = custom || (reuse && prevCode ? prevCode : newCode());
+    if (!reuse && prevCode && prevCode !== c) removeCode(prevCode); // oude code van dit apparaat opruimen
+    lastSent.current = null; // altijd eerst de hele stand sturen (claimt de code)
     write(KEYS.liveCode, c);
     write(KEYS.liveSeen, String(Date.now()));
     setPrevCode(c);
