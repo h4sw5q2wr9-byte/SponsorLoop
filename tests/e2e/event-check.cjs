@@ -20,7 +20,7 @@ async function freshTracker(ctx) {
   await p.click('text=Ik snap het, later doen');
   return p;
 }
-const counter = (p) => p.textContent('main button.group span').then(Number);
+const counter = (p) => p.textContent('main .counter-btn .count-text').then(Number);
 async function startSync(p) {
   await p.click('nav >> text=Beheer'); await p.click('[aria-label="Data & Beheer"]');
   await p.click('text=Live Sync'); await p.click('text=Start Sync');
@@ -43,7 +43,7 @@ async function stopSync(p) {
   // 1. Betrouwbaarheid: 100 rondjes, herladen, klopt alles?
   const p = await freshTracker(ctx);
   const start = await counter(p);
-  for (let i = 0; i < 100; i++) await p.click('main button.group', { delay: 0 });
+  for (let i = 0; i < 100; i++) await p.click('main .counter-btn', { delay: 0 });
   const after = await counter(p);
   await p.reload({ waitUntil: 'networkidle' }); await p.click('text=Ik snap het, later doen').catch(() => {});
   const reloaded = await counter(p);
@@ -59,7 +59,7 @@ async function stopSync(p) {
   for (const s of screens) await s.click('[data-a="live"]');
   await Promise.all(screens.map((s) => s.waitForSelector('#bdTotal')));
   const total0 = Number(await screens[0].textContent('#bdTotal'));
-  for (let i = 0; i < 5; i++) await p.click('main button.group');
+  for (let i = 0; i < 5; i++) await p.click('main .counter-btn');
   const want = String(total0 + 5);
   const t0 = Date.now();
   const okBoth = await Promise.all(screens.map((s) => s.waitForFunction((w) => document.getElementById('bdTotal').textContent === w, want, { timeout: 10000 }).then(() => true, () => false)));
@@ -67,7 +67,7 @@ async function stopSync(p) {
 
   // 3. Wifi valt weg op de tracker
   await ctx.setOffline(true);
-  for (let i = 0; i < 3; i++) await p.click('main button.group');
+  for (let i = 0; i < 3; i++) await p.click('main .counter-btn');
   await p.waitForTimeout(1500);
   const offlineCount = await counter(p);
   await ctx.setOffline(false);
