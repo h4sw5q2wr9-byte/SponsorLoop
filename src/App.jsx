@@ -1,9 +1,10 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import BottomNav from './components/BottomNav.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import { loadFresh } from './lib/reload.js';
 import TrackerPage from './pages/TrackerPage.jsx';
 // Beheer (met de grote grafiekbibliotheek) pas laden wanneer nodig: de tracker start sneller.
-const loadManage = () => import('./pages/ManagePage.jsx');
+const loadManage = () => loadFresh(() => import('./pages/ManagePage.jsx'));
 const ManagePage = lazy(loadManage);
 import { DeleteAllModal, DeleteClassModal, DuplicateNameModal, EditClassModal } from './modals/ClassModals.jsx';
 import { ExportReminderModal, HelpModal, OldBrowserModal, WelcomeModal } from './modals/InfoModals.jsx';

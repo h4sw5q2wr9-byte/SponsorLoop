@@ -2,8 +2,8 @@
   "rules": {
     "sessions": {
       "$code": {
-        ".read": "$code.matches(/^[A-Z0-9]{5,12}$/)",
-        ".write": "auth != null && $code.matches(/^[A-Z0-9]{5,12}$/) && (!data.exists() || data.child('owner').val() === auth.uid || (data.child('seenAt').val() < now - 900000 && newData.child('owner').val() === auth.uid))",
+        ".read": "$code.matches(/^[A-Z2-9]{5}$/)",
+        ".write": "auth != null && $code.matches(/^[A-Z2-9]{5}$/) && (!data.exists() || data.child('owner').val() === auth.uid)",
         ".validate": "newData.hasChildren(['updatedAt', 'owner'])",
         "owner": {
           ".validate": "newData.val() === auth.uid"

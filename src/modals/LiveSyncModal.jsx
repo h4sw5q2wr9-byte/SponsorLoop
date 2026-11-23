@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Copy, ExternalLink, Info, Radio } from 'lucide-react';
 import Modal, { ModalHeader } from '../components/Modal.jsx';
 import { CONTACT } from '../lib/config.js';
-import { cleanCustomCode } from '../lib/firebase.js';
 
 const btn = 'font-bold transition-all active:scale-95 flex items-center justify-center gap-2 w-full rounded-2xl py-3';
 const C = {
@@ -24,9 +23,6 @@ const streamUrl = (code) => new URL(`stream.html${code ? `?code=${code}` : ''}`,
 export default function LiveSyncModal({ open, onClose, sync, onReport }) {
   const [info, setInfo] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [own, setOwn] = useState(null); // null = dicht, anders de getypte eigen code
-  const ownCode = cleanCustomCode(own);
-  const startOwn = (e) => { e.preventDefault(); if (ownCode) { start(false, ownCode); setOwn(null); } };
   const { code, prevCode, status, lastOkAt, start, stop } = sync;
   const [chipBg, dot, label] = STATUS[status];
 
@@ -71,17 +67,6 @@ export default function LiveSyncModal({ open, onClose, sync, onReport }) {
             )}
             <a href={streamUrl()} target="_blank" rel="noopener noreferrer" className={C.secondary}><ExternalLink size={18} /> Stream-pagina</a>
           </div>
-          {own === null ? (
-            <button type="button" onClick={() => setOwn('')} className="w-full mt-4 text-sm font-bold text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400">Eigen code kiezen</button>
-          ) : (
-            <form onSubmit={startOwn} className="mt-4">
-              <input autoFocus value={own} maxLength={12} placeholder="BIJV. SPONSOR26" autoComplete="off" autoCapitalize="characters" spellCheck={false}
-                onChange={(e) => setOwn(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-                className="w-full text-center font-black tracking-[0.2em] uppercase bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-2xl px-3 py-3 text-lg text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
-              <p className="text-xs text-center text-slate-400 dark:text-slate-500 font-medium my-2">6 tot 12 letters of cijfers. Handig voor een embed: die blijft dan altijd werken.</p>
-              <button type="submit" disabled={!ownCode} className={`${C.primary} disabled:opacity-50 disabled:active:scale-100`}><Radio size={18} /> Start met deze code</button>
-            </form>
-          )}
         </>
       ) : (
         <>
@@ -90,17 +75,13 @@ export default function LiveSyncModal({ open, onClose, sync, onReport }) {
               <span className={`w-2 h-2 rounded-full ${dot}`} />{label}
             </span>
           </div>
-          {code.length > 6 ? (
-            <div className="mb-3 py-3 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-center text-2xl font-black tracking-[0.15em] text-slate-900 dark:text-white break-all">{code}</div>
-          ) : (
-            <div className="flex justify-center gap-1.5 mb-3">
-              {code.split('').map((ch, i) => (
-                <span key={i} className="w-11 h-14 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-2xl font-black text-slate-900 dark:text-white">{ch}</span>
-              ))}
-            </div>
-          )}
+          <div className="flex justify-center gap-1.5 mb-3">
+            {code.split('').map((ch, i) => (
+              <span key={i} className="w-11 h-14 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-2xl font-black text-slate-900 dark:text-white">{ch}</span>
+            ))}
+          </div>
           <p className="text-xs text-center text-slate-400 dark:text-slate-500 font-medium mb-6">
-            {status === 'unavailable' ? `Live Sync is even niet beschikbaar. Tellen gaat gewoon door. Blijft dit zo? Meld het hieronder of neem contact op met ${CONTACT}.` : status === 'denied' ? 'Deze code is in gebruik op een ander apparaat. Staat dat apparaat al 15 minuten uit? Stop en probeer het dan opnieuw.' : status === 'error' ? 'Geen verbinding, opnieuw proberen…' : `Laatste update: ${lastOkAt ? new Date(lastOkAt).toLocaleTimeString('nl-NL') : '—'}`}
+            {status === 'unavailable' ? `Live Sync is even niet beschikbaar. Tellen gaat gewoon door. Blijft dit zo? Meld het hieronder of neem contact op met ${CONTACT}.` : status === 'denied' ? 'Deze code hoort bij een ander apparaat. Stop en kies een nieuwe code.' : status === 'error' ? 'Geen verbinding, opnieuw proberen…' : `Laatste update: ${lastOkAt ? new Date(lastOkAt).toLocaleTimeString('nl-NL') : '—'}`}
           </p>
           {status === 'unavailable' && onReport && (
             <button type="button" onClick={onReport} className="w-full mb-3 text-sm font-bold text-orange-600 dark:text-orange-300 underline">Probleem melden</button>

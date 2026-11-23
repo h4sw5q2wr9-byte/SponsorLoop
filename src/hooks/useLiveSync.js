@@ -2,13 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { buildRefresh, buildUpdate, FirebaseUnavailable, newCode, sessionUrl } from '../lib/firebase.js';
 import { getAuth } from '../lib/firebaseAuth.js';
 import { KEYS, read, write } from '../lib/storage.js';
+import { markLive, takeResume } from '../lib/reload.js';
 
 const HEARTBEAT_MS = 30000; // stream-pagina ziet zo dat de tracker nog actief is
 const RETRY_MS = 3000;
 const BATCH_MS = 2000; // wijzigingen 2 seconden verzamelen en dan samen versturen
 const FULL_EVERY = 10; // elke 10e hartslag (5 min) alle aantallen opnieuw sturen (zonder namen): verschillen herstellen zich
 const RETRY_UNAVAILABLE_MS = 30000; // Firebase weigert: rustig opnieuw proberen
-const FORGOTTEN_AFTER_MS = 2 * 24 * 60 * 60 * 1000; // vergeten code na twee dagen opruimen
+const FORGOTTEN_AFTER_MS = 24 * 60 * 60 * 1000; // vergeten code na een dag opruimen
 
 /** Verwijdert een code uit Firebase (alleen mogelijk voor de eigen tracker). */
 function removeCode(c) {
@@ -24,7 +25,7 @@ function removeCode(c) {
 export function useLiveSync(classes, goal) {
   const [code, setCode] = useState(null);
   const [prevCode, setPrevCode] = useState(() => {
-    // Code van meer dan twee dagen geleden die nooit gestopt is? Stil opruimen.
+    // Code van meer dan een dag geleden die nooit gestopt is? Stil opruimen.
     const old = read(KEYS.liveCode);
     const seen = Number(read(KEYS.liveSeen)) || 0;
     if (old && Date.now() - seen > FORGOTTEN_AFTER_MS) {
@@ -123,18 +124,19 @@ export function useLiveSync(classes, goal) {
     return () => clearInterval(t);
   }, [code, send]);
 
-  // start(true) = verder met de vorige code, start(false) = nieuwe code, start(false, 'EIGEN01') = eigen code.
-  // Een eigen code die op een ander apparaat in gebruik is, mag pas na 15 minuten stilte overgenomen worden (Firebase-regels).
-  const start = useCallback((reuse = false, custom = null) => {
-    const c = custom || (reuse && prevCode ? prevCode : newCode());
-    if (!reuse && prevCode && prevCode !== c) removeCode(prevCode); // oude code van dit apparaat opruimen
-    lastSent.current = null; // altijd eerst de hele stand sturen (claimt de code)
+  const start = useCallback((reuse = false) => {
+    const c = reuse && prevCode ? prevCode : newCode();
+    if (!reuse && prevCode) removeCode(prevCode); // oude code van dit apparaat opruimen
     write(KEYS.liveCode, c);
     write(KEYS.liveSeen, String(Date.now()));
     setPrevCode(c);
     setStatus('sending');
     setCode(c);
+    markLive(true);
   }, [prevCode]);
+
+  // Automatisch herladen na een update terwijl Live Sync aan stond? Dan meteen verder met dezelfde code.
+  useEffect(() => { if (prevCode && takeResume()) start(true); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const stop = useCallback(() => {
     clearTimeout(retry.current);
@@ -144,6 +146,7 @@ export function useLiveSync(classes, goal) {
     setPrevCode(null);
     setCode(null);
     setStatus('idle');
+    markLive(false);
   }, [code]);
 
   return { code, prevCode, status, lastOkAt, start, stop };

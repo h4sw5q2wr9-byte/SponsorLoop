@@ -74,7 +74,7 @@ The school's Samsung Frame TV showed a **blank page**: its browser is an old Chr
 - **"Idee of probleem melden"** in the app, on the stream page and in error screens.
 - Messages are stored privately in Firebase; a **GitHub Action** turns them into **GitHub issues** every 30 minutes
   (labels `idee`/`bug`), so Tijn gets an email.
-- The same job removes Live Sync codes that have been inactive for more than two days.
+- The same job removes Live Sync codes that have been inactive for more than a day.
 
 ### Phase 7: The embed (20 Nov)
 - **🔗 Embed button** next to the OBS button: a ready-made `<iframe>` with the current code, for example for the
@@ -82,12 +82,6 @@ The school's Samsung Frame TV showed a **blank page**: its browser is an old Chr
 - Compact, responsive scoreboard; tested on a different domain, on desktop and on a phone.
 - **Tijn's idea:** a start screen ("Bekijk de live stand") so there's no connection until someone clicks, a
   10-minute time-out with "Opnieuw verbinden", and messages that explain *why* something doesn't work.
-
-### Phase 7b: Own code (23 Nov)
-- **Eigen code kiezen** in Live Sync (6–12 characters), so the embed never has to change.
-- If the counting device breaks, another device can take over the same code after **15 minutes** of silence.
-  No PIN or password: kept simple on purpose.
-- Unused codes are cleaned up after **two days**.
 
 ### Phase 8: Documentation
 - A 9-page Dutch **PDF handbook** with screenshots, a quick start, a checklist for the day, troubleshooting and the embed.
