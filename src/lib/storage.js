@@ -1,6 +1,7 @@
 // Alles wat in localStorage staat. De sleutels zijn gelijk aan de oude versie,
 // zodat bestaande data gewoon blijft werken.
 import { colorAt } from './colors.js';
+import { cleanGoal } from './standings.js';
 
 export const KEYS = {
   classes: 'sponsorloop_classes',
@@ -38,8 +39,7 @@ export function loadClasses() {
 }
 
 export function loadGoal() {
-  const raw = read(KEYS.goal);
-  return raw ? parseInt(raw, 10) || null : null;
+  return cleanGoal(read(KEYS.goal));
 }
 
 export function loadTheme() {

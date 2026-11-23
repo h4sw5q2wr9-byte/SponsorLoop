@@ -1,5 +1,12 @@
+/** Geldig schooldoel (heel getal > 0) of null. Alles anders (0, negatief, tekst, NaN) = geen doel. */
+export function cleanGoal(value) {
+  const n = typeof value === 'number' ? value : parseInt(String(value == null ? '' : value).trim(), 10);
+  return Number.isFinite(n) && n > 0 ? Math.min(Math.floor(n), 1000000) : null;
+}
+
 // Berekent de ranglijst. Gelijke rondes = gelijke plaats (1, 1, 3, ...).
-export function standings(classes = [], goal = null) {
+export function standings(classes = [], rawGoal = null) {
+  const goal = cleanGoal(rawGoal);
   const list = classes
     .map((c) => ({ name: c.name, laps: Number(c.laps) || 0, color: c.color }))
     .sort((a, b) => b.laps - a.laps ||
@@ -12,4 +19,4 @@ export function standings(classes = [], goal = null) {
 }
 
 export const totalLaps = (classes) => classes.reduce((s, c) => s + (Number(c.laps) || 0), 0);
-export const goalPercent = (total, goal) => (goal ? Math.min(100, Math.round((total / goal) * 100)) : 0);
+export const goalPercent = (total, goal) => { const g = cleanGoal(goal); return g ? Math.min(100, Math.round((total / g) * 100)) : 0; };

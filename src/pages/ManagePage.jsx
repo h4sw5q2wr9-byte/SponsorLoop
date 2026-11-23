@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { BarChart3, CircleHelp, ArrowRightLeft, Layers, Moon, Pencil, Plus, Search, Sun, Target, Trash2, Trophy } from 'lucide-react';
 import StatsChart from '../components/StatsChart.jsx';
-import { standings } from '../lib/standings.js';
+import { cleanGoal, standings } from '../lib/standings.js';
 
 const glass = 'bg-white/75 backdrop-blur-xl dark:bg-slate-800 dark:backdrop-blur-none border border-white/50 dark:border-slate-700';
 const iconBtn = 'p-3 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-2xl hover:bg-blue-50 dark:hover:bg-slate-700 active:scale-95 transition-all border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md';
@@ -57,10 +57,10 @@ export default function ManagePage({
           <div className="flex-1">
             <label htmlFor="goal" className="block text-xs font-bold uppercase text-slate-400 dark:text-slate-500 mb-1 tracking-wider">School Doel</label>
             <input id="goal" type="number" inputMode="numeric" placeholder="Stel aantal rondes in..." value={goal || ''}
-              onChange={(e) => onGoalChange(e.target.value ? parseInt(e.target.value, 10) : null)}
+              onChange={(e) => onGoalChange(cleanGoal(e.target.value))}
               className="w-full bg-transparent font-bold text-lg placeholder:text-slate-300 dark:placeholder:text-slate-600 outline-none" />
           </div>
-          {goal && <span className="text-2xl font-black">{goalPct}%</span>}
+          {goal ? <span className="text-2xl font-black">{goalPct}%</span> : null}
         </div>
 
         {/* Statistieken */}

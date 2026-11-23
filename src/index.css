@@ -37,3 +37,21 @@ input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; marg
 .animate-fade-in { animation: fade-in .2s ease-out both; }
 @keyframes zoom-in-soft { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: none; } }
 .animate-zoom-in { animation: zoom-in-soft .2s ease-out both; }
+
+/* De grote telknop: stabiel bij indrukken (alleen schaal), geen vormverandering */
+.counter-btn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  box-shadow: 0 18px 40px -14px rgba(37, 99, 235, .55), inset 0 -6px 0 rgba(0, 0, 0, .12);
+  transition: transform .28s cubic-bezier(.2, .9, .3, 1.25), box-shadow .28s ease, filter .2s ease;
+}
+.counter-btn.is-pressed {
+  transform: scale(.975);
+  transition-duration: .08s;
+  box-shadow: 0 8px 22px -14px rgba(37, 99, 235, .5), inset 0 -2px 0 rgba(0, 0, 0, .12);
+}
+.dark .counter-btn { box-shadow: 0 18px 40px -14px rgba(0, 0, 0, .6), inset 0 -6px 0 rgba(0, 0, 0, .18); }
+@media (hover: hover) {
+  .counter-btn:not(:disabled):hover { filter: brightness(1.05); }
+}

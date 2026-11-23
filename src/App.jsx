@@ -15,7 +15,7 @@ import { useLiveSync } from './hooks/useLiveSync.js';
 import { colorAt } from './lib/colors.js';
 import { backupFilename, downloadJson, parseBackup, toBackup } from './lib/backup.js';
 import { KEYS, loadClasses, loadGoal, loadTheme, read, write } from './lib/storage.js';
-import { goalPercent, totalLaps } from './lib/standings.js';
+import { cleanGoal, goalPercent, totalLaps } from './lib/standings.js';
 import { vibrate } from './lib/haptics.js';
 
 const byName = (a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
@@ -189,7 +189,7 @@ export default function App() {
             goal={goal}
             goalPct={goalPct}
             theme={theme}
-            onGoalChange={setGoal}
+            onGoalChange={(g) => setGoal(cleanGoal(g))}
             onAddClass={addClass}
             onEdit={(c) => { vibrate(10); setEditing({ ...c }); }}
             onDelete={(id) => { vibrate(10); setDeletingId(id); }}

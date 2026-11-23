@@ -1,5 +1,6 @@
 // Exporteren en importeren van een backup (.json)
 import { colorAt } from './colors.js';
+import { cleanGoal } from './standings.js';
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -42,7 +43,7 @@ export function parseBackup(text) {
   let goal = null;
   if (Array.isArray(json)) items = json;
   else if (json && typeof json === 'object') {
-    if (Array.isArray(json.classes)) { items = json.classes; goal = json.schoolGoal || null; }
+    if (Array.isArray(json.classes)) { items = json.classes; goal = cleanGoal(json.schoolGoal); }
     else if (Array.isArray(json.data)) items = json.data;
     else items = Object.values(json).filter((v) => v && typeof v === 'object');
   }

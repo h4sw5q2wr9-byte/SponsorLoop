@@ -150,3 +150,21 @@ describe('veiligheids-verversing zonder namen', () => {
     expect(buildRefresh(prev, [cls[0]], 10, 2).full).toBe(true);
   });
 });
+
+import { cleanGoal } from '../src/lib/standings.js';
+
+describe('schooldoel opschonen', () => {
+  it('ongeldig wordt geen doel', () => {
+    for (const v of [0, '0', -5, '-5', 'abc', '', null, undefined, NaN, '  ', 'e']) expect(cleanGoal(v)).toBe(null);
+  });
+  it('geldig blijft een heel getal', () => {
+    expect(cleanGoal('1000')).toBe(1000);
+    expect(cleanGoal(250.7)).toBe(250);
+    expect(cleanGoal(' 42 ')).toBe(42);
+  });
+  it('ranglijst en percentage gebruiken nooit een ongeldig doel', () => {
+    expect(standings([{ name: 'A', laps: 5 }], 0)).toMatchObject({ goal: null, pct: null });
+    expect(standings([{ name: 'A', laps: 5 }], 'abc')).toMatchObject({ goal: null, pct: null });
+    expect(goalPercent(10, NaN)).toBe(0);
+  });
+});

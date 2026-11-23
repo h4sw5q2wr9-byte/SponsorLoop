@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useRef } from 'react';
 import { ChevronDown, RotateCcw, Trophy } from 'lucide-react';
 import Button from '../components/Button.jsx';
 import Background from '../components/Background.jsx';
 import Leaderboard from '../components/Leaderboard.jsx';
-import { shade } from '../lib/colors.js';
+import CounterButton from '../components/CounterButton.jsx';
 import { goalPercent, totalLaps } from '../lib/standings.js';
 
 const glass = 'bg-white/75 backdrop-blur-xl dark:bg-slate-800 dark:backdrop-blur-none border border-white/50 dark:border-slate-700';
@@ -12,14 +12,13 @@ const label = 'uppercase text-slate-500 dark:text-slate-400 font-extrabold track
 const WIDE = 'lg:flex-row landscape:flex-row';
 
 export default function TrackerPage({ classes, sortedClasses, goal, selected, onSelect, onAdd, onUndo }) {
-  const [anim, setAnim] = useState(null); // 'up' | 'down'
+  const counter = useRef(null);
   const total = totalLaps(classes);
   const pct = goalPercent(total, goal);
   const canUndo = !!selected && selected.laps > 0;
 
-  const flash = (dir) => { setAnim(dir); setTimeout(() => setAnim(null), 200); };
-  const add = () => { if (selected) { flash('up'); onAdd(); } };
-  const undo = () => { if (selected) { flash('down'); onUndo(); } };
+  const add = () => { if (selected) onAdd(); };
+  const undo = () => { if (selected) { counter.current?.pop('down'); onUndo(); } };
 
   return (
     <div className={`flex flex-col h-full w-full max-w-lg mx-auto p-4 pb-28 gap-3 ${WIDE} lg:max-w-none landscape:max-w-none lg:gap-6 landscape:gap-4 landscape:pb-24 lg:landscape:pb-28 animate-fade-in`}>
@@ -55,11 +54,11 @@ export default function TrackerPage({ classes, sortedClasses, goal, selected, on
               ? <span className="text-3xl font-black tabular-nums">{goal}</span>
               : <span className="text-sm font-medium text-slate-400 dark:text-slate-600 italic">Geen ingesteld</span>}
           </div>
-          {goal && (
+          {goal ? (
             <div className="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden mt-4">
               <div className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${pct}%` }} />
             </div>
-          )}
+          ) : null}
           {/* Ranglijst alleen op echt grote schermen (digibord, laptop) */}
           <div className="hidden lg:flex flex-col flex-1 min-h-0 mt-6">
             <Leaderboard classes={classes} selectedId={selected?.id} onSelect={onSelect} />
@@ -74,20 +73,14 @@ export default function TrackerPage({ classes, sortedClasses, goal, selected, on
 
       {/* De grote telknop */}
       <div className="flex-1 min-h-[12rem] min-w-0 flex z-10">
-        <button
-          type="button"
-          onClick={add}
+        <CounterButton
+          ref={counter}
+          value={selected?.laps || 0}
+          color={selected?.color}
           disabled={!selected}
-          aria-label={selected ? `Ronde erbij voor ${selected.name}` : 'Geen klas gekozen'}
-          className="group relative touch-none flex-1 rounded-[2.5rem] bg-gradient-to-br from-blue-500 to-indigo-700 shadow-[0_20px_50px_-12px_rgba(59,130,246,0.5)] dark:shadow-[0_20px_50px_-12px_rgba(30,58,138,0.5)] active:shadow-inner text-white flex flex-col items-center justify-center transition-all duration-100 active:scale-[0.98] border-b-[6px] border-r-[4px] border-blue-800/30 active:border-0 active:translate-y-1 overflow-hidden select-none ring-4 ring-white/20 dark:ring-white/5"
-          style={{ background: selected ? `linear-gradient(135deg, ${selected.color} 0%, ${shade(selected.color, 20)} 100%)` : undefined }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.25),transparent_70%)]" />
-          <span className={`count-text font-black tabular-nums tracking-tighter leading-none drop-shadow-lg ${anim === 'up' ? 'animate-pop' : ''} ${anim === 'down' ? 'animate-pop-down' : ''}`}>
-            {selected?.laps || 0}
-          </span>
-        </button>
+          label={selected ? `Ronde erbij voor ${selected.name}` : 'Geen klas gekozen'}
+          onAdd={add}
+        />
       </div>
 
       {/* Telefoon (rechtop): herstel + totaal */}
@@ -98,11 +91,11 @@ export default function TrackerPage({ classes, sortedClasses, goal, selected, on
           </Button>
         </div>
         <div className={`${glass} rounded-3xl p-4 shadow-sm flex justify-between items-center relative overflow-hidden`}>
-          {goal && (
+          {goal ? (
             <div className="absolute bottom-0 left-0 h-1 bg-blue-500/20 w-full">
               <div className="h-full bg-blue-500 transition-all duration-1000" style={{ width: `${pct}%` }} />
             </div>
-          )}
+          ) : null}
           <div className="flex flex-col">
             <span className={`text-[10px] ${label} mb-1`}>Totaal School</span>
             <span className="text-3xl font-black leading-none tabular-nums">{total}</span>
