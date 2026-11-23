@@ -10,6 +10,7 @@ export const KEYS = {
   introSeen: 'sponsorloop_intro_seen',
   liveCode: 'sponsorloop_live_code',
   liveSeen: 'sponsorloop_live_seen', // laatste keer dat Live Sync actief was
+  liveFixed: 'sponsorloop_live_fixed', // '1' als de huidige code een vaste code (met pincode) is
 };
 
 export const DEFAULT_CLASSES = [

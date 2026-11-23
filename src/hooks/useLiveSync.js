@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { buildRefresh, buildUpdate, FirebaseUnavailable, newCode, sessionUrl } from '../lib/firebase.js';
 import { getAuth } from '../lib/firebaseAuth.js';
+import { touchFixedCode } from '../lib/fixedCode.js';
 import { KEYS, read, write } from '../lib/storage.js';
 
 const HEARTBEAT_MS = 30000; // stream-pagina ziet zo dat de tracker nog actief is
@@ -35,6 +36,7 @@ export function useLiveSync(classes, goal) {
     }
     return old;
   });
+  const [fixed, setFixed] = useState(() => read(KEYS.liveFixed) === '1');
   const [status, setStatus] = useState('idle'); // idle | sending | ok | error | denied | unavailable
   const [lastOkAt, setLastOkAt] = useState(0);
   const latest = useRef({ classes, goal });
@@ -123,25 +125,39 @@ export function useLiveSync(classes, goal) {
     return () => clearInterval(t);
   }, [code, send]);
 
-  const start = useCallback((reuse = false) => {
-    const c = reuse && prevCode ? prevCode : newCode();
-    if (!reuse && prevCode) removeCode(prevCode); // oude code van dit apparaat opruimen
+  // start(reuse) = verder met de vorige code of een nieuwe; start(false, 'VASTECODE') = een vaste code (al geclaimd)
+  // Vaste code: elk half uur markeren als "in gebruik", zodat hij niet na 2 dagen wordt opgeruimd
+  useEffect(() => {
+    if (!code || !fixed) return undefined;
+    const t = setInterval(() => touchFixedCode(code), 30 * 60 * 1000);
+    return () => clearInterval(t);
+  }, [code, fixed]);
+
+  const start = useCallback((reuse = false, fixedCode = null) => {
+    const c = fixedCode || (reuse && prevCode ? prevCode : newCode());
+    if (!reuse && prevCode && prevCode !== c && !fixed) removeCode(prevCode); // oude willekeurige code opruimen
+    const isFixed = fixedCode ? true : (reuse && fixed);
+    setFixed(isFixed);
+    write(KEYS.liveFixed, isFixed ? '1' : null);
+    if (isFixed) touchFixedCode(c);
     write(KEYS.liveCode, c);
     write(KEYS.liveSeen, String(Date.now()));
     setPrevCode(c);
     setStatus('sending');
     setCode(c);
-  }, [prevCode]);
+  }, [prevCode, fixed]);
 
   const stop = useCallback(() => {
     clearTimeout(retry.current);
     if (code) removeCode(code);
     write(KEYS.liveCode, null);
     write(KEYS.liveSeen, null);
+    write(KEYS.liveFixed, null);
+    setFixed(false);
     setPrevCode(null);
     setCode(null);
     setStatus('idle');
   }, [code]);
 
-  return { code, prevCode, status, lastOkAt, start, stop };
+  return { code, prevCode, fixed, status, lastOkAt, start, stop };
 }

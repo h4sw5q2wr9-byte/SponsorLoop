@@ -2,8 +2,8 @@
   "rules": {
     "sessions": {
       "$code": {
-        ".read": "$code.matches(/^[A-Z2-9]{5}$/)",
-        ".write": "auth != null && $code.matches(/^[A-Z2-9]{5}$/) && (!data.exists() || data.child('owner').val() === auth.uid)",
+        ".read": "$code.matches(/^[A-Z0-9]{5,12}$/)",
+        ".write": "auth != null && $code.matches(/^[A-Z0-9]{5,12}$/) && (root.child('pins').child($code).exists() ? root.child('members').child($code).child(auth.uid).val() === root.child('pins').child($code).child('pin').val() : (!data.exists() || data.child('owner').val() === auth.uid))",
         ".validate": "newData.hasChildren(['updatedAt', 'owner'])",
         "owner": {
           ".validate": "newData.val() === auth.uid"
@@ -60,6 +60,29 @@
         },
         "$other": {
           ".validate": false
+        }
+      }
+    },
+    "pins": {
+      "$code": {
+        ".write": "auth != null && $code.matches(/^[A-Z0-9]{5,12}$/) && (data.exists() ? root.child('members').child($code).child(auth.uid).val() === root.child('pins').child($code).child('pin').val() : (!root.child('sessions').child($code).exists() || root.child('sessions').child($code).child('owner').val() === auth.uid))",
+        ".validate": "newData.hasChildren(['pin', 'lastUsed'])",
+        "pin": {
+          ".validate": "newData.isString() && newData.val().length >= 6 && newData.val().length <= 64"
+        },
+        "lastUsed": {
+          ".validate": "newData.isNumber() && newData.val() <= now + 60000"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "members": {
+      "$code": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && root.child('pins').child($code).exists() && newData.val() === root.child('pins').child($code).child('pin').val()",
+          ".validate": "newData.isString()"
         }
       }
     }

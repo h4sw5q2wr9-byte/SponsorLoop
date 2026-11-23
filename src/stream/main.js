@@ -179,7 +179,7 @@ function viewConnect() {
     '<h2 class="text-xl font-black text-center text-slate-900 dark:text-white mb-2">Vul de code in</h2>' +
     '<p class="text-slate-500 dark:text-slate-400 text-center mb-6 font-medium text-sm">Te vinden bij <strong>Live Sync</strong> in de tracker.</p>' +
     '<form data-f="connect" class="flex flex-col gap-3">' +
-    '<input id="codeIn" value="' + esc(S.code) + '" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCDE" ' +
+    '<input id="codeIn" value="' + esc(S.code) + '" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCDE" ' +
     'class="code-input w-full text-center text-3xl font-black uppercase py-4 rounded-2xl bg-slate-50 dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 outline-none text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-500 transition-colors">' +
     (S.error ? '<p class="text-sm text-center font-bold text-red-500">' + esc(S.error) + '</p>' : '') +
     '<button type="submit" class="' + C.primary + ' w-full py-4 text-lg">Verbinden</button>' +
@@ -554,7 +554,7 @@ function startFeed() {
 function stopFeedNow() { if (stopFeed) { stopFeed(); stopFeed = null; } }
 function connect(code) {
   code = (code || '').trim().toUpperCase();
-  if (!/^[A-Z0-9]{4,8}$/.test(code)) { S.error = 'Vul de code van 5 tekens in.'; render(); return; }
+  if (!/^[A-Z0-9]{5,12}$/.test(code)) { S.error = 'Vul de code in (5 tot 12 tekens).'; render(); return; }
   S.code = code; S.error = ''; S.data = null; S.net = 'idle'; S.view = 'preview'; S.anim = true;
   setUrl(); render(); startFeed();
 }
